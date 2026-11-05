@@ -113,6 +113,8 @@ jobs:
             php-version: '8.5'
             # sqlite (по умолчанию) | mariadb | pgsql — на чём идут тесты
             database: sqlite
+            # команды перед тестами, если проекту они нужны
+            # test-setup: php artisan passport:keys
         secrets:
             SSH_HOST: ${{ secrets.SSH_HOST }}
             SSH_USER: ${{ secrets.SSH_USER }}

@@ -43,6 +43,10 @@ on:
                 description: БД для тестов — sqlite (из phpunit.xml), mariadb или pgsql (как на проде)
                 type: string
                 default: sqlite
+            test-setup:
+                description: Команды перед тестами, после key:generate — например php artisan passport:keys
+                type: string
+                default: ''
         secrets:
             SSH_HOST:
                 required: true
@@ -60,6 +64,7 @@ env:
     AUTO_MIGRATE: ${{ inputs.auto-migrate }}
     RSYNC_EXCLUDE: ${{ inputs.rsync-exclude }}
     DATABASE: ${{ inputs.database }}
+    TEST_SETUP: ${{ inputs.test-setup }}
 
 jobs:
     deploy:
@@ -151,6 +156,7 @@ jobs:
                         esac
                         [ -f .env ] || cp .env.example .env 2>/dev/null || touch .env
                         php artisan key:generate --force --no-interaction
+                        if [ -n "$TEST_SETUP" ]; then bash -c "$TEST_SETUP"; fi
                         php artisan test
                         rm -f .env
                     fi
