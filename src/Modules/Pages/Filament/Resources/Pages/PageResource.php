@@ -9,7 +9,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\URL;
 use UnitEnum;
 use Zuber\Kit\Core\Filament\Support\PanelAccessSupport;
 use Zuber\Kit\Modules\Pages\Filament\Resources\Pages\Pages\CreatePage;
@@ -19,6 +18,7 @@ use Zuber\Kit\Modules\Pages\Filament\Resources\Pages\Schemas\PageForm;
 use Zuber\Kit\Modules\Pages\Filament\Resources\Pages\Tables\PagesTable;
 use Zuber\Kit\Modules\Pages\Models\Page;
 use Zuber\Kit\Modules\Pages\PagesPlugin;
+use Zuber\Kit\Modules\Pages\Support\PagePreviewSupport;
 
 /**
  * @extends resource<Page>
@@ -68,7 +68,7 @@ final class PageResource extends Resource
      */
     public static function previewUrl(Page $page): string
     {
-        return URL::temporarySignedRoute('kit.pages.preview', now()->addHour(), ['page' => $page]);
+        return PagePreviewSupport::url($page);
     }
 
     public static function getPages(): array

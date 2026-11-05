@@ -5,7 +5,8 @@ use Zuber\Kit\Modules\Pages\Http\Controllers\BlockImageUploadController;
 use Zuber\Kit\Modules\Pages\Http\Controllers\PagePreviewController;
 use Zuber\Kit\Modules\Pages\Http\Middleware\AcceptJsonMiddleware;
 
-Route::middleware(['web', 'signed'])
+// Подпись без схемы и домена (PagePreviewSupport): за прокси с https снаружи она та же
+Route::middleware(['web', 'signed:relative'])
     ->get('_kit/pages/{page}/preview', PagePreviewController::class)
     ->name('kit.pages.preview');
 

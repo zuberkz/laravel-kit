@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
 use Zuber\Kit\Modules\Pages\Enums\PageStatusEnum;
 use Zuber\Kit\Modules\Pages\Enums\SharedBlockPositionEnum;
 use Zuber\Kit\Modules\Pages\Exceptions\BlockException;
@@ -10,6 +9,7 @@ use Zuber\Kit\Modules\Pages\Models\Page;
 use Zuber\Kit\Modules\Pages\Models\SharedBlock;
 use Zuber\Kit\Modules\Pages\Services\BlockRegistryService;
 use Zuber\Kit\Modules\Pages\Services\PageRenderService;
+use Zuber\Kit\Modules\Pages\Support\PagePreviewSupport;
 
 /**
  * @param array<int, array{type: string, data: array<string, mixed>}> $blocks
@@ -110,7 +110,7 @@ it('shows the page without a block it cannot build and reports it', function (ar
 it('previews a draft by a signed link, closed from search engines', function (): void {
     $draft = page('/draft', [['type' => 'hero', 'data' => ['title' => 'Черновик']]], ['status' => PageStatusEnum::DRAFT]);
 
-    $this->get(URL::temporarySignedRoute('kit.pages.preview', now()->addHour(), ['page' => $draft]))
+    $this->get(PagePreviewSupport::url($draft))
         ->assertOk()
         ->assertSee('Черновик')
         ->assertSee('<meta name="robots" content="noindex">', false);

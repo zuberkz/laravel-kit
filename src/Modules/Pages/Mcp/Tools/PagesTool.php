@@ -2,13 +2,13 @@
 
 namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 
-use Illuminate\Support\Facades\URL;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tool;
 use Zuber\Kit\Core\Exceptions\DomainException;
 use Zuber\Kit\Modules\Pages\Models\Page;
+use Zuber\Kit\Modules\Pages\Support\PagePreviewSupport;
 
 /**
  * Инструмент конструктора страниц: отказ по правилу (DomainException) возвращается ошибкой с
@@ -40,7 +40,7 @@ abstract class PagesTool extends Tool
             'path' => $page->path,
             'status' => $page->status->value,
             'url' => url($page->path),
-            'preview_url' => $page->isPublished() ? null : URL::temporarySignedRoute('kit.pages.preview', now()->addHour(), ['page' => $page]),
+            'preview_url' => $page->isPublished() ? null : PagePreviewSupport::url($page),
             'show_header' => $page->show_header,
             'show_footer' => $page->show_footer,
             'seo_title' => $page->seo_title,
