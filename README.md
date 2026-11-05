@@ -15,6 +15,7 @@
 | `robots.txt`, `sitemap.xml`, `canonical_url()` | `src/Seo` | маршруты кита; разделы sitemap — классы проекта с тегом |
 | Защита форм от спама | `src/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
 | Поля `PhoneInput` (+7) и `SearchInput` | `src/Filament/Forms/Fields` | в схемах Filament |
+| Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в

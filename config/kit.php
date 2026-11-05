@@ -26,4 +26,16 @@ return [
         'routes' => true,
         'robots_disallow' => [],
     ],
+
+    // Конструктор страниц (enabled — проект его подключил): blocks — null (классы из app/Blocks) или
+    // список классов; views — каталог шаблонов блоков (null — resources/views/blocks); layout —
+    // Blade-компонент страницы сайта; картинки блоков — на disk в image_directory
+    'pages' => [
+        'enabled' => false,
+        'blocks' => null,
+        'views' => null,
+        'layout' => 'layouts.app',
+        'disk' => 'public',
+        'image_directory' => 'blocks',
+    ],
 ];

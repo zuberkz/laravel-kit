@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Spatie\LaravelData\Data;
 use Symfony\Component\Finder\Finder;
+use Zuber\Kit\Pages\Blocks\Block;
 
 /*
  * Архитектурные правила студии (CLAUDE.md, .claude/rules). Ослаблять их нельзя — исправляйте код.
@@ -126,6 +127,14 @@ arch('repositories end with Repository')
     ->toHaveSuffix('Repository')
     ->toBeFinal()
     ->toBeReadonly();
+
+arch('page blocks live in App\\Blocks, end with Block and extend the kit block')
+    ->expect('App\\Blocks')
+    ->classes()
+    ->toHaveSuffix('Block')
+    ->toBeFinal()
+    ->toBeReadonly()
+    ->toExtend(Block::class);
 
 arch('support helpers end with Support')
     ->expect('App\Support')

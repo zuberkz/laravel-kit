@@ -15,6 +15,8 @@ use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Blade;
 use Kirschbaum\PowerJoins\PowerJoinsServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -22,6 +24,8 @@ use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
 use Zuber\Kit\Access\Actions\SyncRolesAction;
 use Zuber\Kit\KitServiceProvider;
+use Zuber\Kit\Tests\Fixtures\Blocks\FaqBlock;
+use Zuber\Kit\Tests\Fixtures\Blocks\HeroBlock;
 use Zuber\Kit\Tests\Fixtures\PanelServiceProvider;
 use Zuber\Kit\Tests\Fixtures\RoleEnum;
 use Zuber\Kit\Tests\Fixtures\User;
@@ -67,11 +71,29 @@ abstract class TestCase extends Orchestra
         $app['config']->set('auth.providers.users.model', User::class);
         $app['config']->set('database.default', 'testing');
         $app['config']->set('kit.access.roles', RoleEnum::class);
+        $app['config']->set('kit.pages', [
+            'enabled' => true,
+            'blocks' => [HeroBlock::class, FaqBlock::class],
+            'views' => __DIR__ . '/Fixtures/views/blocks',
+            'layout' => 'test-layout',
+        ]);
+    }
+
+    /**
+     * Страницы конструктора — последним маршрутом, как в routes/web.php проекта.
+     *
+     * @param Router $router
+     */
+    protected function defineRoutes($router): void
+    {
+        Blade::anonymousComponentPath(__DIR__ . '/Fixtures/views/components');
+        $router->kitPages();
     }
 
     protected function defineDatabaseMigrations(): void
     {
         $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 
     /**
