@@ -55,6 +55,13 @@ it('builds the site form from the fields made in the admin and stores the answer
     Notification::assertSentOnDemand(NewLeadNotification::class, fn (NewLeadNotification $notification, array $channels, AnonymousNotifiable $notifiable): bool => $notifiable->routes['mail'] === ['cleaning@example.kz', 'boss@example.kz']);
 });
 
+it('takes the button text of the form unless the block sets its own', function (): void {
+    $form = cleaningForm();
+
+    Livewire::test(LeadFormComponent::class, ['form' => $form->id, 'buttonLabel' => null])->assertSee('Рассчитать');
+    Livewire::test(LeadFormComponent::class, ['form' => $form->id, 'buttonLabel' => 'Хочу скидку'])->assertSee('Хочу скидку')->assertDontSee('Рассчитать');
+});
+
 it('validates the fields of a custom form', function (): void {
     Livewire::test(LeadFormComponent::class, ['form' => cleaningForm()->id])
         ->fillForm(['phone' => '', 'kind' => 'Другое', 'email' => 'не почта'])

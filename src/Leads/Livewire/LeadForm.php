@@ -32,10 +32,10 @@ final class LeadForm extends Component implements HasSchemas
     public string $source = '';
 
     /**
-     * Текст кнопки из блока; пусто — текст формы.
+     * Текст кнопки из блока; пусто — текст формы. Livewire кладёт сюда параметр до mount(), null тоже.
      */
     #[Locked]
-    public string $buttonLabel = '';
+    public ?string $buttonLabel = null;
 
     /**
      * Страница, на которой открыли форму: в запросе отправки адрес уже другой (Livewire).
@@ -56,7 +56,7 @@ final class LeadForm extends Component implements HasSchemas
     {
         $this->formId = $form;
         $this->source = $source;
-        $this->buttonLabel = $buttonLabel ?? '';
+        $this->buttonLabel = $buttonLabel;
         $this->url = request()->fullUrl();
         $this->getSchema('form')?->fill();
     }
@@ -110,7 +110,7 @@ final class LeadForm extends Component implements HasSchemas
         $definition = $this->definition();
 
         return view($view, [
-            'button' => $this->buttonLabel !== '' ? $this->buttonLabel : $definition->buttonLabel,
+            'button' => $this->buttonLabel !== null && $this->buttonLabel !== '' ? $this->buttonLabel : $definition->buttonLabel,
             'successMessage' => $definition->successMessage,
         ]);
     }
