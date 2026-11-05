@@ -41,9 +41,11 @@ final readonly class LeadService
         $this->limiter->hit($key);
 
         return $this->leads->create([
+            'lead_form_id' => $data->formId,
             'name' => $data->name,
             'phone' => $data->phone,
-            'message' => $data->message,
+            'email' => $data->email,
+            'answers' => $data->answers,
             'source' => $data->source,
             'url' => $data->url,
             'status' => LeadStatusEnum::NEW,
@@ -51,11 +53,11 @@ final readonly class LeadService
     }
 
     /**
-     * Письмо на адреса из kit.leads.mail_to; нет адресов — заявка только в админке.
+     * Письмо на адреса формы, а если их нет — на kit.leads.mail_to; нет адресов — заявка только в админке.
      */
-    public function notifyTeam(Lead $lead): void
+    public function notifyTeam(Lead $lead, ?string $formMailTo = null): void
     {
-        $mailTo = $this->config->get('kit.leads.mail_to');
+        $mailTo = $formMailTo ?? $this->config->get('kit.leads.mail_to');
 
         // Список или строка через запятую — так адреса задаются одной переменной .env
         $emails = collect(is_string($mailTo) ? explode(',', $mailTo) : (array) $mailTo)

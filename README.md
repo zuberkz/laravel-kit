@@ -16,7 +16,7 @@
 | Защита форм от спама | `src/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
 | Поля `PhoneInput` (+7) и `SearchInput` | `src/Filament/Forms/Fields` | в схемах Filament |
 | Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
-| Заявки: форма на сайте, раздел в админке, письмо команде | `src/Leads` | `kit.leads.enabled`, `<livewire:kit-lead-form>`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
+| Заявки: формы из конструктора в админке, заявки, письмо команде | `src/Leads` | `kit.leads.enabled`, `<livewire:kit-lead-form :form>`, `LeadFormSelect`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в

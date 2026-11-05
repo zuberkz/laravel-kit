@@ -109,7 +109,8 @@ final class KitServiceProvider extends ServiceProvider
             $migrations . '/2026_11_05_000002_create_shared_blocks_table.php' => database_path('migrations/2026_11_05_000002_create_shared_blocks_table.php'),
         ], 'kit-pages-migrations');
         $this->publishesMigrations([
-            $migrations . '/2026_11_05_000003_create_leads_table.php' => database_path('migrations/2026_11_05_000003_create_leads_table.php'),
+            $migrations . '/2026_11_05_000003_create_lead_forms_table.php' => database_path('migrations/2026_11_05_000003_create_lead_forms_table.php'),
+            $migrations . '/2026_11_05_000004_create_leads_table.php' => database_path('migrations/2026_11_05_000004_create_leads_table.php'),
         ], 'kit-leads-migrations');
     }
 }

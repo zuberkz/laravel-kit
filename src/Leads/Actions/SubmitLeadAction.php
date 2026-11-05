@@ -21,11 +21,14 @@ final readonly class SubmitLeadAction
     /**
      * @throws TooManyLeadsException
      */
-    public function handle(LeadData $data, string $ip): Lead
+    /**
+     * @param string|null $mailTo свои адреса формы для письма
+     */
+    public function handle(LeadData $data, string $ip, ?string $mailTo = null): Lead
     {
         $lead = $this->db->transaction(fn (): Lead => $this->leads->submit($data, $ip));
 
-        $this->leads->notifyTeam($lead);
+        $this->leads->notifyTeam($lead, $mailTo);
 
         return $lead;
     }

@@ -2,34 +2,21 @@
 
 namespace Zuber\Kit\Leads\Data;
 
-use Illuminate\Support\Arr;
-
 /**
- * Заявка из формы сайта. Телефон уже нормализован полем PhoneInput: +77071234567.
+ * Заявка с формы сайта: контакты для списка и звонка плюс снимок всех ответов.
  */
 final readonly class LeadData
 {
+    /**
+     * @param array<int, array{label: string, value: string}> $answers
+     */
     public function __construct(
-        public string $name,
-        public string $phone,
-        public ?string $message = null,
+        public ?int $formId,
+        public array $answers,
+        public ?string $name = null,
+        public ?string $phone = null,
+        public ?string $email = null,
         public ?string $source = null,
         public ?string $url = null,
     ) {}
-
-    /**
-     * @param array<string, mixed> $state
-     */
-    public static function fromForm(array $state, ?string $source, ?string $url): self
-    {
-        $message = $state['message'] ?? null;
-
-        return new self(
-            name: trim(Arr::string($state, 'name')),
-            phone: Arr::string($state, 'phone'),
-            message: is_string($message) && trim($message) !== '' ? trim($message) : null,
-            source: $source === '' ? null : $source,
-            url: $url,
-        );
-    }
 }

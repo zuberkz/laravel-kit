@@ -7,6 +7,7 @@ use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 use Zuber\Kit\Filament\Support\PanelAccessSupport;
@@ -59,6 +60,14 @@ final class LeadResource extends Resource
     public static function getNavigationBadgeColor(): string
     {
         return 'warning';
+    }
+
+    /**
+     * @return Builder<Lead>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('leadForm');
     }
 
     public static function table(Table $table): Table

@@ -51,10 +51,16 @@ and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `
 `@filamentScripts`.
 
 ## Leads
-- The form is `<livewire:kit-lead-form :source="…" :button-label="…" />` (name, phone, comment,
-  honeypot, a rate limit per IP): a lead is stored, the team gets a queued mail at
-  `kit.leads.mail_to` (`LEADS_MAIL_TO` in `.env`, comma-separated), managers work with it in
-  "Заявки". A site does not build its own lead table or form.
+- Lead forms are built in the admin without a programmer ("Формы заявок"): fields from Filament
+  components by `LeadFieldTypeEnum` (name, phone, email, text, textarea, select, checkbox, date),
+  a button text, a thank-you text, own mail addresses. A form needs a phone or an email field.
+- On the site: `<livewire:kit-lead-form :form="$block->form" :source="…" />`, the block chooses
+  the form with `LeadFormSelect::make('form')` (a nullable `?int $form` property); no form —
+  the built-in "Обратный звонок" (name, phone, comment). Honeypot and a rate limit per IP are on.
+- A lead stores a snapshot of the answers (label → value), so it stays readable after the form
+  changes; contacts go to `name`/`phone`/`email` for the list and "Позвонить". The team gets a
+  queued mail at the form's addresses or `kit.leads.mail_to` (`LEADS_MAIL_TO`). A site does not
+  build its own lead table or form.
 
 ## Tests
 One test renders every block of `app/Blocks` from its `example()`; a new block needs no new

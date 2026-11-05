@@ -7,10 +7,11 @@ use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel;
 use UnitEnum;
+use Zuber\Kit\Leads\Filament\Resources\LeadForms\LeadFormResource;
 use Zuber\Kit\Leads\Filament\Resources\Leads\LeadResource;
 
 /**
- * Раздел «Заявки» в панели Filament:
+ * Разделы «Заявки» и «Формы заявок» в панели Filament:
  *
  *     ->plugin(LeadsPlugin::make()->managePermission(PermissionEnum::MANAGE_LEADS)->navigationGroup(NavigationGroupEnum::SITE))
  */
@@ -67,7 +68,7 @@ final class LeadsPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        $panel->resources([LeadResource::class]);
+        $panel->resources([LeadResource::class, LeadFormResource::class]);
     }
 
     public function boot(Panel $panel): void {}

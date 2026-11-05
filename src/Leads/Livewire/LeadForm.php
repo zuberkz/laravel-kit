@@ -2,8 +2,6 @@
 
 namespace Zuber\Kit\Leads\Livewire;
 
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -11,15 +9,16 @@ use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Zuber\Kit\Exceptions\DomainException;
-use Zuber\Kit\Filament\Forms\Fields\PhoneInput;
 use Zuber\Kit\Leads\Actions\SubmitLeadAction;
-use Zuber\Kit\Leads\Data\LeadData;
+use Zuber\Kit\Leads\Data\LeadFormDefinitionData;
+use Zuber\Kit\Leads\Services\LeadFormService;
 use Zuber\Kit\Spam\HoneypotField;
 use Zuber\Kit\Spam\UsesSpamProtection;
 
 /**
- * Форма заявки на сайте: <livewire:kit-lead-form source="Первый экран" button-label="Перезвоните мне" />.
- * Имя, телефон, комментарий; защита от ботов и от повторной отправки, после отправки — «спасибо».
+ * Форма заявки на сайте: <livewire:kit-lead-form :form="$block->form" source="Первый экран" />.
+ * Поля — из формы, собранной в админке (без неё — «Обратный звонок»); защита от ботов и от
+ * повторной отправки, после отправки — «спасибо» формы.
  */
 final class LeadForm extends Component implements HasSchemas
 {
@@ -27,8 +26,14 @@ final class LeadForm extends Component implements HasSchemas
     use UsesSpamProtection;
 
     #[Locked]
+    public ?int $formId = null;
+
+    #[Locked]
     public string $source = '';
 
+    /**
+     * Текст кнопки из блока; пусто — текст формы.
+     */
     #[Locked]
     public string $buttonLabel = '';
 
@@ -47,10 +52,11 @@ final class LeadForm extends Component implements HasSchemas
 
     public ?string $error = null;
 
-    public function mount(string $source = '', ?string $buttonLabel = null): void
+    public function mount(?int $form = null, string $source = '', ?string $buttonLabel = null): void
     {
+        $this->formId = $form;
         $this->source = $source;
-        $this->buttonLabel = $buttonLabel ?? __('Отправить заявку');
+        $this->buttonLabel = $buttonLabel ?? '';
         $this->url = request()->fullUrl();
         $this->getSchema('form')?->fill();
     }
@@ -59,22 +65,14 @@ final class LeadForm extends Component implements HasSchemas
     {
         return $schema
             ->statePath('data')
+            ->columns(['sm' => 2])
             ->components([
-                TextInput::make('name')
-                    ->label(__('Имя'))
-                    ->required()
-                    ->maxLength(100)
-                    ->autocomplete('name'),
-                PhoneInput::make()->required(),
-                Textarea::make('message')
-                    ->label(__('Комментарий'))
-                    ->rows(3)
-                    ->maxLength(2000),
+                ...app(LeadFormService::class)->components($this->definition()),
                 HoneypotField::make(),
             ]);
     }
 
-    public function submit(SubmitLeadAction $submit): void
+    public function submit(SubmitLeadAction $submit, LeadFormService $forms): void
     {
         $state = $this->getSchema('form')?->getState() ?? [];
         $this->error = null;
@@ -86,8 +84,10 @@ final class LeadForm extends Component implements HasSchemas
             return;
         }
 
+        $definition = $this->definition();
+
         try {
-            $submit->handle(LeadData::fromForm($state, $this->source, $this->url), (string) request()->ip());
+            $submit->handle($forms->lead($definition, $state, $this->source, $this->url), (string) request()->ip(), $definition->mailTo);
         } catch (DomainException $exception) {
             report($exception);
             $this->error = $exception->getMessage();
@@ -98,11 +98,20 @@ final class LeadForm extends Component implements HasSchemas
         $this->sent = true;
     }
 
+    private function definition(): LeadFormDefinitionData
+    {
+        return once(fn (): LeadFormDefinitionData => app(LeadFormService::class)->definition($this->formId));
+    }
+
     public function render(): View
     {
         /** @var view-string $view */
         $view = 'kit::livewire.lead-form';
+        $definition = $this->definition();
 
-        return view($view);
+        return view($view, [
+            'button' => $this->buttonLabel !== '' ? $this->buttonLabel : $definition->buttonLabel,
+            'successMessage' => $definition->successMessage,
+        ]);
     }
 }

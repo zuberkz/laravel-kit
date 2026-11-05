@@ -11,6 +11,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\View\View;
 use Zuber\Kit\Leads\Actions\MarkLeadProcessedAction;
 use Zuber\Kit\Leads\Enums\LeadStatusEnum;
 use Zuber\Kit\Leads\Filament\Resources\Leads\LeadResource;
@@ -29,18 +30,19 @@ final class LeadsTable
                     ->sortable(),
                 TextColumn::make('name')
                     ->label(__('Клиент'))
-                    ->description(fn (Lead $record): ?string => PhoneSupport::format($record->phone))
-                    ->searchable(['name', 'phone']),
-                TextColumn::make('message')
-                    ->label(__('Комментарий'))
+                    ->description(fn (Lead $record): ?string => PhoneSupport::format($record->phone) ?? $record->email)
+                    ->placeholder('—')
+                    ->searchable(['name', 'phone', 'email']),
+                TextColumn::make('answers')
+                    ->label(__('Ответы'))
+                    ->state(fn (Lead $record): string => self::summary($record))
                     ->limit(80)
-                    ->tooltip(fn (Lead $record): ?string => $record->message)
                     ->wrap()
                     ->placeholder('—'),
-                TextColumn::make('source')
+                TextColumn::make('leadForm.name')
                     ->label(__('Форма'))
-                    ->description(fn (Lead $record): ?string => $record->url === null ? null : (string) parse_url($record->url, PHP_URL_PATH))
-                    ->placeholder('—')
+                    ->description(fn (Lead $record): ?string => $record->source)
+                    ->placeholder(__('Обратный звонок'))
                     ->toggleable(),
                 TextColumn::make('status')
                     ->label(__('Статус'))
@@ -49,12 +51,22 @@ final class LeadsTable
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')->label(__('Статус'))->options(LeadStatusEnum::class),
+                SelectFilter::make('lead_form_id')->label(__('Форма'))->relationship('leadForm', 'name'),
             ])
             ->recordActions([
+                Action::make('answers')
+                    ->label(__('Ответы'))
+                    ->icon(Heroicon::OutlinedEye)
+                    ->color('gray')
+                    ->modalHeading(fn (Lead $record): string => __('Заявка от :date', ['date' => $record->created_at?->format('d.m.Y H:i')]))
+                    ->modalContent(fn (Lead $record): View => self::answers($record))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel(__('Закрыть')),
                 Action::make('call')
                     ->label(__('Позвонить'))
                     ->icon(Heroicon::OutlinedPhone)
                     ->color('gray')
+                    ->visible(fn (Lead $record): bool => $record->phone !== null)
                     ->url(fn (Lead $record): string => 'tel:' . $record->phone),
                 Action::make('markProcessed')
                     ->label(__('Обработана'))
@@ -72,5 +84,24 @@ final class LeadsTable
                     DeleteBulkAction::make()->authorizeIndividualRecords('delete'),
                 ]),
             ]);
+    }
+
+    /**
+     * Ответы одной строкой, кроме контактов — они в колонке «Клиент».
+     */
+    private static function summary(Lead $record): string
+    {
+        return collect($record->answers)
+            ->reject(fn (array $answer): bool => in_array($answer['value'], [$record->name, PhoneSupport::format($record->phone), $record->email], true))
+            ->map(fn (array $answer): string => $answer['label'] . ': ' . $answer['value'])
+            ->implode(' · ');
+    }
+
+    private static function answers(Lead $record): View
+    {
+        /** @var view-string $view */
+        $view = 'kit::leads.answers';
+
+        return view($view, ['lead' => $record]);
     }
 }

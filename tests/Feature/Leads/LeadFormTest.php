@@ -34,8 +34,12 @@ it('stores the lead, thanks the visitor and mails the team', function (): void {
     submitLead()->assertHasNoFormErrors()->assertSet('sent', true)->assertSee('Спасибо! Заявка отправлена.');
 
     $lead = Lead::query()->sole();
-    expect($lead->only(['name', 'phone', 'message', 'source']))->toBe([
-        'name' => 'Айгерим', 'phone' => '+77071122536', 'message' => 'Перезвоните после 18:00', 'source' => 'Первый экран',
+    expect($lead->only(['name', 'phone', 'source', 'lead_form_id']))->toBe([
+        'name' => 'Айгерим', 'phone' => '+77071122536', 'source' => 'Первый экран', 'lead_form_id' => null,
+    ])->and($lead->answers)->toBe([
+        ['label' => 'Имя', 'value' => 'Айгерим'],
+        ['label' => 'Телефон', 'value' => '+7 (707) 112-25-36'],
+        ['label' => 'Комментарий', 'value' => 'Перезвоните после 18:00'],
     ])->and($lead->status)->toBe(LeadStatusEnum::NEW);
 
     Notification::assertSentOnDemand(NewLeadNotification::class, fn (NewLeadNotification $notification, array $channels, AnonymousNotifiable $notifiable): bool => $notifiable->routes['mail'] === ['team@example.kz']);
@@ -68,7 +72,7 @@ it('lists leads in the admin, counts new ones and marks a lead processed', funct
     $this->seedRoles();
     Filament::setCurrentPanel('panel');
     $this->actingAs($this->userWithRole(RoleEnum::MANAGER));
-    $lead = Lead::query()->create(['name' => 'Айгерим', 'phone' => '+77071122536', 'status' => LeadStatusEnum::NEW]);
+    $lead = Lead::query()->create(['name' => 'Айгерим', 'phone' => '+77071122536', 'answers' => [['label' => 'Имя', 'value' => 'Айгерим']], 'status' => LeadStatusEnum::NEW]);
 
     expect(LeadResource::getNavigationBadge())->toBe('1');
 
