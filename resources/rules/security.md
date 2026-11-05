@@ -19,10 +19,12 @@ paths:
   `public/` unless they are meant to be public, and never executed.
 
 ## Headers and transport
-- A security-headers middleware on the `web` group: `Strict-Transport-Security`,
-  `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` (or `frame-ancestors` in CSP),
-  `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` that disables what the
-  site does not use. A `Content-Security-Policy` once the list of third-party scripts (analytics,
+- Security headers come from the kit on every response (a global middleware):
+  `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` that disables camera,
+  microphone, geolocation, payment; `Strict-Transport-Security` in production over https. A site
+  that needs one of them (a map with geolocation) changes `security_headers` in `config/kit.php`;
+  never a second middleware with the same headers. A `Content-Security-Policy` once the list of third-party scripts (analytics,
   maps, widgets) is known — start in `Report-Only`.
 - HTTPS only: `URL::forceHttps()` in production, secure session cookies (`SESSION_SECURE_COOKIE`).
 

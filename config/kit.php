@@ -6,4 +6,13 @@ return [
     'access' => [
         'roles' => 'App\\Enums\\Access\\RoleEnum',
     ],
+
+    // Заголовки безопасности на каждый ответ; HSTS — только на проде по https
+    'security_headers' => [
+        'enabled' => true,
+        'hsts_max_age' => 31536000,
+        'frame_options' => 'SAMEORIGIN',
+        'referrer_policy' => 'strict-origin-when-cross-origin',
+        'permissions_policy' => 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+    ],
 ];

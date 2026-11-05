@@ -2,12 +2,15 @@
 
 namespace Zuber\Kit;
 
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\PermissionRegistrar;
 use Zuber\Kit\Access\Commands\SyncRolesCommand;
+use Zuber\Kit\Http\Middleware\SecurityHeadersMiddleware;
 
 /**
- * Что кит даёт проекту сам: настройки kit.*, канал лога domain, команда kit:sync-roles. Файлы проект
+ * Что кит даёт проекту сам: настройки kit.*, канал лога domain, заголовки безопасности на каждый
+ * ответ, команда kit:sync-roles. Файлы проект
  * забирает через vendor:publish — каждая группа своим тегом, выбор в post-update-cmd.
  */
 final class KitServiceProvider extends ServiceProvider
@@ -20,6 +23,10 @@ final class KitServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Ядро — через контракт: по классу Kernel контейнер собрал бы новое, мимо ядра, которое обслуживает запросы
+        $kernel = $this->app->make(HttpKernel::class);
+        $kernel->pushMiddleware(SecurityHeadersMiddleware::class);
+
         if (! $this->app->runningInConsole()) {
             return;
         }
