@@ -16,6 +16,7 @@
 | Защита форм от спама | `src/Modules/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
 | Поля `PhoneInput` (+7) и `SearchInput` | `src/Core/Filament/Forms/Fields` | в схемах Filament |
 | Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Modules/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
+| MCP конструктора страниц: ИИ-ассистент собирает и правит лендинги из блоков | `src/Modules/Pages/Mcp` | `PagesServer` в `routes/ai.php` проекта с OAuth и правом на страницы (пакет `laravel/mcp`) |
 | Заявки: формы из конструктора в админке, заявки, письмо команде | `src/Modules/Leads` | `kit.leads.enabled`, `<livewire:kit-lead-form :form>`, `LeadFormSelect`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 

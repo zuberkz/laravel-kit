@@ -8,6 +8,24 @@ use Zuber\Kit\Modules\Pages\Models\Page;
 
 final readonly class PageRepository
 {
+    public function find(int $id): ?Page
+    {
+        return Page::query()->find($id);
+    }
+
+    /**
+     * Все страницы для списка: без блоков, по адресу.
+     *
+     * @return Collection<int, Page>
+     */
+    public function list(): Collection
+    {
+        return Page::query()
+            ->select(['id', 'title', 'path', 'status', 'noindex', 'updated_at'])
+            ->orderBy('path')
+            ->get();
+    }
+
     public function findPublished(string $path): ?Page
     {
         return Page::query()->where('path', $path)->where('status', PageStatusEnum::PUBLISHED)->first();
@@ -52,9 +70,15 @@ final readonly class PageRepository
         return $page;
     }
 
-    public function pathExists(string $path): bool
+    /**
+     * @param int|null $exceptId страница, которой адрес принадлежит сейчас
+     */
+    public function pathExists(string $path, ?int $exceptId = null): bool
     {
-        return Page::query()->where('path', $path)->exists();
+        return Page::query()
+            ->where('path', $path)
+            ->when($exceptId !== null, fn ($query) => $query->whereKeyNot($exceptId))
+            ->exists();
     }
 
     /**

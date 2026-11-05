@@ -4,6 +4,7 @@ paths:
   - "resources/views/blocks/**"
   - "config/kit.php"
   - "routes/web.php"
+  - "routes/ai.php"
 ---
 
 # Page builder and leads (kit)
@@ -67,6 +68,25 @@ and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `
   changes; contacts go to `name`/`phone`/`email` for the list and "Позвонить". The team gets a
   queued mail at the form's addresses or `kit.leads.mail_to` (`LEADS_MAIL_TO`). A site does not
   build its own lead table or form.
+
+## MCP: pages without the admin
+- The kit's `Zuber\Kit\Modules\Pages\Mcp\PagesServer` (package `laravel/mcp`) lets an AI
+  assistant build and edit pages: `list-block-types`, `list-pages`, `get-page`, `create-page`,
+  `update-page`, `set-blocks`, `add-block`, `update-block`, `move-block`, `delete-block`,
+  `list-shared-blocks`, `update-shared-block`, `upload-image`. Every write goes through the same
+  actions as the admin and is checked the same way (block types, required fields, path).
+- The project connects it in `routes/ai.php` — **never without authorisation**: Passport OAuth for
+  claude.ai connectors and the permission that manages pages:
+
+  ```php
+  Mcp::oauthRoutes();
+  Mcp::web('/mcp/pages', PagesServer::class)
+      ->middleware(['auth:api', 'can:' . PermissionEnum::MANAGE_PAGES->value, 'throttle:60,1']);
+  ```
+- Site tools go into a subclass: `protected array $tools = [...PagesServer::TOOLS, OwnTool::class]`.
+- A new block is available to the assistant at once: `list-block-types` reads `app/Blocks`. It
+  sees the constructor properties, the static field labels and options, and `example()` — so a
+  meaningful example (with the formats a field expects) is what teaches it the block.
 
 ## Tests
 One test renders every block of `app/Blocks` from its `example()`; a new block needs no new

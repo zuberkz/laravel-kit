@@ -8,6 +8,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionParameter;
+use TypeError;
 use Zuber\Kit\Modules\Pages\Enums\BlockBackgroundEnum;
 use Zuber\Kit\Modules\Pages\Enums\BlockSpacingEnum;
 use Zuber\Kit\Modules\Pages\Exceptions\BlockException;
@@ -92,6 +93,7 @@ abstract readonly class Block
      * @param array<string, mixed> $data
      *
      * @throws BlockException
+     * @throws TypeError      значение поля не того типа, что у свойства блока
      */
     public static function fromArray(array $data): static
     {

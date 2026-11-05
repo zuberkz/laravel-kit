@@ -4,6 +4,7 @@ namespace Zuber\Kit\Modules\Pages\Data;
 
 use Illuminate\Support\Arr;
 use Zuber\Kit\Modules\Pages\Enums\PageStatusEnum;
+use Zuber\Kit\Modules\Pages\Models\Page;
 
 /**
  * Страница из формы админки.
@@ -45,6 +46,19 @@ final readonly class PageData
             ogImage: self::text($state['og_image'] ?? null),
             noindex: (bool) ($state['noindex'] ?? false),
         );
+    }
+
+    /**
+     * Сохранённая страница с изменениями поверх: ключи — как в форме (title, path, blocks, seo_title…).
+     *
+     * @param array<string, mixed> $changes
+     */
+    public static function fromPage(Page $page, array $changes = []): self
+    {
+        return self::fromForm([
+            ...$page->only(['title', 'path', 'status', 'blocks', 'show_header', 'show_footer', 'seo_title', 'seo_description', 'og_image', 'noindex']),
+            ...$changes,
+        ]);
     }
 
     /**

@@ -2,17 +2,56 @@
 
 namespace Zuber\Kit\Modules\Pages\Services;
 
+use Illuminate\Routing\Router;
+use Illuminate\Support\Collection;
 use Zuber\Kit\Modules\Pages\Data\PageData;
 use Zuber\Kit\Modules\Pages\Enums\PageStatusEnum;
+use Zuber\Kit\Modules\Pages\Exceptions\PageBuilderException;
 use Zuber\Kit\Modules\Pages\Models\Page;
 use Zuber\Kit\Modules\Pages\Repositories\PageRepository;
+use Zuber\Kit\Modules\Pages\Support\PagePathSupport;
 
 /**
  * Страницы конструктора: запись и копирование; связи с общими блоками — по блокам страницы.
  */
 final readonly class PageService
 {
-    public function __construct(private PageRepository $pages) {}
+    public function __construct(
+        private PageRepository $pages,
+        private Router $router,
+    ) {}
+
+    /**
+     * @return Collection<int, Page>
+     */
+    public function list(): Collection
+    {
+        return $this->pages->list();
+    }
+
+    /**
+     * @throws PageBuilderException
+     */
+    public function findOrFail(int $id): Page
+    {
+        return $this->pages->find($id) ?? throw PageBuilderException::pageNotFound($id);
+    }
+
+    /**
+     * Адрес можно отдать странице: формат, не занят другой страницей и разделом сайта (в админке то
+     * же проверяет форма).
+     *
+     * @throws PageBuilderException
+     */
+    public function assertPathAvailable(string $path, ?Page $page = null): void
+    {
+        match (true) {
+            preg_match(PagePathSupport::PATTERN, $path) !== 1 => throw PageBuilderException::invalidPath($path),
+            $this->pages->pathExists($path, $page?->id) => throw PageBuilderException::pathTaken($path),
+            PagePathSupport::isTakenByRoute($this->router, $path) => throw PageBuilderException::pathTakenByRoute($path),
+            default => null,
+        };
+    }
 
     public function findPublished(string $path): ?Page
     {

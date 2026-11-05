@@ -22,6 +22,16 @@ final readonly class SharedBlockRepository
         return SharedBlock::query()->find($id);
     }
 
+    /**
+     * Все общие блоки со счётчиком страниц, где они стоят.
+     *
+     * @return Collection<int, SharedBlock>
+     */
+    public function list(): Collection
+    {
+        return SharedBlock::query()->withCount('pages')->orderBy('name')->get();
+    }
+
     public function atPosition(SharedBlockPositionEnum $position): ?SharedBlock
     {
         return SharedBlock::query()->where('position', $position)->first();
