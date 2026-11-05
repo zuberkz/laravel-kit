@@ -12,6 +12,7 @@
 | Разделы «Пользователи» и «Роли» в Filament | `src/Users` | плагин `UsersPlugin` в панели проекта |
 | Синхронизация ролей и прав с `RoleEnum` | `src/Access` | команда `kit:sync-roles`, её запускает общий деплой |
 | Заголовки безопасности, `noindex` вне прода | `src/Http`, `src/Seo/Http` | глобальные middleware, сами |
+| Поля `PhoneInput` (+7) и `SearchInput` | `src/Filament/Forms/Fields` | в схемах Filament |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в

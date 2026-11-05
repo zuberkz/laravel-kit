@@ -40,9 +40,10 @@ admin panel.
 - Take the standard Filament fields wherever they exist (`TextInput`, `Textarea`, `Toggle`,
   `Radio`, `Select`, `CheckboxList`, `DatePicker`, `FileUpload`) and restyle them to the design in
   `resources/css/filament/`; do not rebuild a field Filament already has.
-- Presets of a standard field (search, social link, phone) are classes with a static `make()`
-  returning the configured Filament field in `app/Filament/Forms/Fields` (`SearchInput`,
-  `PhoneInput`).
+- Presets of a standard field are classes with a static `make()` returning the configured
+  Filament field. Phone and search come from the kit — `Zuber\Kit\Filament\Forms\Fields\PhoneInput`
+  (mask `+7 (999) 999-99-99`, stored as `+77071234567`, shown with `PhoneSupport::format()`) and
+  `SearchInput`; the project's own presets (a social link) live in `app/Filament/Forms/Fields`.
 - A field Filament does not have (a 4-digit SMS code, a star rating, size chips) or a field with
   special behaviour (phone mask, file upload to a specific disk) is the project's own component: a
   class extending `Filament\Forms\Components\Field` (or the Filament class it replaces) in
