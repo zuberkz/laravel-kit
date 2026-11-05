@@ -1,0 +1,55 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "zuberkz/laravel-kit",
+    "type": "library",
+    "description": "Общий набор студии Zuber для Laravel-проектов: правила для агентов, arch-тесты, конфиг Pint, обработка отказов по бизнес-правилам, деплой",
+    "keywords": [
+        "laravel",
+        "conventions",
+        "architecture"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.13",
+        "laravel/pint": "^1.27",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^5.3",
+        "pestphp/pest-plugin-laravel": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zuber\\Kit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zuber\\Kit\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Zuber\\Kit\\KitServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "check": [
+            "@php vendor/bin/pint --test --config resources/stubs/pint.json",
+            "@php vendor/bin/phpstan analyse --no-progress --memory-limit=1G",
+            "@php vendor/bin/pest"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

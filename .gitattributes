@@ -1,0 +1,5 @@
+/.github export-ignore
+/tests export-ignore
+/phpunit.xml export-ignore
+/phpstan.neon export-ignore
+/docker-compose.yml export-ignore
