@@ -6,9 +6,10 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Zuber\Kit\Modules\Leads\Livewire\LeadForm;
+use Zuber\Kit\Modules\Leads\Livewire\LeadModal;
 
 /**
- * Заявки, если проект их включил (kit.leads.enabled): форма kit-lead-form, миграции.
+ * Заявки, если проект их включил (kit.leads.enabled): форма kit-lead-form, окно kit-lead-modal, миграции.
  */
 final class LeadsServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,7 @@ final class LeadsServiceProvider extends ServiceProvider
 
         if ($config->get('kit.leads.enabled') === true && class_exists(Livewire::class)) {
             Livewire::component('kit-lead-form', LeadForm::class);
+            Livewire::component('kit-lead-modal', LeadModal::class);
         }
     }
 }

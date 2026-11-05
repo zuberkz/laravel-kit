@@ -57,6 +57,9 @@ and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `
 - On the site: `<livewire:kit-lead-form :form="$block->form" :source="…" />`, the block chooses
   the form with `LeadFormSelect::make('form')` (a nullable `?int $form` property); no form —
   the built-in "Обратный звонок" (name, phone, comment). Honeypot and a rate limit per IP are on.
+- A popup form: `<livewire:kit-lead-modal />` once in the layout; any link `#form` (the built-in
+  form) or `#form-3` (form № 3, shown in "Формы заявок") opens it — a button of any block can
+  open a form without a template change.
 - A lead stores a snapshot of the answers (label → value), so it stays readable after the form
   changes; contacts go to `name`/`phone`/`email` for the list and "Позвонить". The team gets a
   queued mail at the form's addresses or `kit.leads.mail_to` (`LEADS_MAIL_TO`). A site does not

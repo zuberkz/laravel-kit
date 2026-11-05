@@ -19,6 +19,13 @@ final class LeadFormsTable
                     ->description(fn (LeadForm $record): string => trans_choice(':count поле|:count поля|:count полей', count($record->fields), ['count' => count($record->fields)]))
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('button_link')
+                    ->label(__('Ссылка для кнопки'))
+                    ->state(fn (LeadForm $record): string => '#form-' . $record->id)
+                    ->tooltip(__('Впишите в ссылку кнопки любого блока: форма откроется во всплывающем окне'))
+                    ->copyable()
+                    ->copyMessage(__('Ссылка скопирована'))
+                    ->fontFamily('mono'),
                 TextColumn::make('leads_count')
                     ->label(__('Заявок'))
                     ->numeric()
