@@ -31,7 +31,7 @@ final class LeadFormResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -47,7 +47,7 @@ final class LeadFormResource extends Resource
 
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return LeadsPlugin::current()->getNavigationGroup();
+        return LeadsPlugin::current()->getFormsNavigationGroup();
     }
 
     public static function form(Schema $schema): Schema

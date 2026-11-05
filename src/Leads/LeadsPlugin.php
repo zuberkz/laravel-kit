@@ -13,13 +13,15 @@ use Zuber\Kit\Leads\Filament\Resources\Leads\LeadResource;
 /**
  * Разделы «Заявки» и «Формы заявок» в панели Filament:
  *
- *     ->plugin(LeadsPlugin::make()->managePermission(PermissionEnum::MANAGE_LEADS)->navigationGroup(NavigationGroupEnum::SITE))
+ *     ->plugin(LeadsPlugin::make()->managePermission(PermissionEnum::MANAGE_LEADS)->formsNavigationGroup(NavigationGroupEnum::BUILDER))
  */
 final class LeadsPlugin implements Plugin
 {
     private ?string $managePermission = null;
 
     private string|UnitEnum|null $navigationGroup = null;
+
+    private string|UnitEnum|null $formsNavigationGroup = null;
 
     public static function make(): self
     {
@@ -54,6 +56,21 @@ final class LeadsPlugin implements Plugin
         $this->navigationGroup = $group;
 
         return $this;
+    }
+
+    /**
+     * Группа меню «Форм заявок», если она не та, что у «Заявок» (например, рядом со страницами).
+     */
+    public function formsNavigationGroup(string|UnitEnum|null $group): self
+    {
+        $this->formsNavigationGroup = $group;
+
+        return $this;
+    }
+
+    public function getFormsNavigationGroup(): string|UnitEnum|null
+    {
+        return $this->formsNavigationGroup ?? $this->navigationGroup;
     }
 
     public function getManagePermission(): ?string
