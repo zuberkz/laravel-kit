@@ -61,6 +61,16 @@ final readonly class UserRepository
         return $query->whereHas('roles', fn (Builder $role): Builder => $role->whereIn('name', $roles));
     }
 
+    public function findByEmail(string $email): (Model&HasRolesInterface)|null
+    {
+        return $this->modelClass()::query()->where('email', $email)->first();
+    }
+
+    public function updatePassword(Model&HasRolesInterface $user, string $hash): void
+    {
+        $user->update(['password' => $hash]);
+    }
+
     /**
      * @param array<string, string> $attributes
      * @param array<int, string>    $roles

@@ -14,6 +14,9 @@ paths:
   roles in the project. Another enum class — `config/kit.php` → `access.roles`.
 - The admin users and roles screens are the kit's `UsersPlugin` (Filament), not the project's
   own resources.
+- The first admin on a server (seeders never run there): `php artisan kit:make-user
+  owner@site.kz --role=admin` — the generated password is printed once; a second run for the same
+  email changes nothing, `--reset-password` issues a new one. Never a seeder with real accounts.
 - Policies check **permissions** (`hasPermissionTo`), never role names. A role inside one record
   (owner, participant, assignee) is data of that record, not a spatie role.
 - An ability is a case of an enum `App\Enums\Access\…AbilityEnum`, one enum per policy

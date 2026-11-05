@@ -37,4 +37,18 @@ final readonly class RoleRepository
 
         return $query->where('name', '!=', $hiddenRole);
     }
+
+    /**
+     * Роли из списка, которых нет в базе.
+     *
+     * @param  array<int, string> $names
+     * @return array<int, string>
+     */
+    public function missing(array $names): array
+    {
+        /** @var array<int, string> $existing */
+        $existing = $this->modelClass()::query()->whereIn('name', $names)->pluck('name')->all();
+
+        return collect($names)->diff($existing)->values()->all();
+    }
 }

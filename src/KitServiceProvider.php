@@ -10,6 +10,7 @@ use Zuber\Kit\Modules\Leads\LeadsServiceProvider;
 use Zuber\Kit\Modules\Pages\PagesServiceProvider;
 use Zuber\Kit\Modules\Security\SecurityServiceProvider;
 use Zuber\Kit\Modules\Seo\SeoServiceProvider;
+use Zuber\Kit\Modules\Users\UsersServiceProvider;
 
 /**
  * Кит целиком: настройки kit.*, канал лога domain, шаблоны кита, файлы для проекта (vendor:publish,
@@ -24,6 +25,7 @@ final class KitServiceProvider extends ServiceProvider
         SecurityServiceProvider::class,
         SeoServiceProvider::class,
         AccessServiceProvider::class,
+        UsersServiceProvider::class,
         PagesServiceProvider::class,
         LeadsServiceProvider::class,
     ];
