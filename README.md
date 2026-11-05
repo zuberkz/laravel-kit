@@ -132,6 +132,10 @@ Semver по тегам `vX.Y.Z`. Новое arch-правило или прав�
 
 ## Разработка
 
+Как устроены модули, куда класть код, конфиг, миграции, шаблоны и тесты, как выпускать версии —
+в [CLAUDE.md](CLAUDE.md).
+
+
 ```bash
 docker compose build
 docker compose run --rm php composer install
