@@ -73,7 +73,9 @@ and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `
 - The kit's `Zuber\Kit\Modules\Pages\Mcp\PagesServer` (package `laravel/mcp`) lets an AI
   assistant build and edit pages: `list-block-types`, `list-pages`, `get-page`, `create-page`,
   `update-page`, `set-blocks`, `add-block`, `update-block`, `move-block`, `delete-block`,
-  `list-shared-blocks`, `update-shared-block`, `upload-image`. Every write goes through the same
+  `list-shared-blocks`, `update-shared-block`, `upload-image` (by an https link),
+  `image-upload-url` (a one-time signed link for 10 minutes: the assistant sends a photo from the
+  chat with `curl` from its sandbox to `_kit/pages/images/{token}`). Every write goes through the same
   actions as the admin and is checked the same way (block types, required fields, path).
 - The project connects it in `routes/ai.php` — **never without authorisation**: Passport OAuth for
   claude.ai connectors and the permission that manages pages:
@@ -83,6 +85,8 @@ and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `
   Mcp::web('/mcp/pages', PagesServer::class)
       ->middleware(['auth:api', 'can:' . PermissionEnum::MANAGE_PAGES->value, 'throttle:60,1']);
   ```
+- Photos from a phone are 3–8 MB: the server must accept 10 MB uploads (`upload_max_filesize`,
+  `post_max_size` in PHP, `client_max_body_size` in nginx), otherwise the upload fails before the kit.
 - Site tools go into a subclass: `protected array $tools = [...PagesServer::TOOLS, OwnTool::class]`.
 - A new block is available to the assistant at once: `list-block-types` reads `app/Blocks`. It
   sees the constructor properties, the static field labels and options, and `example()` — so a

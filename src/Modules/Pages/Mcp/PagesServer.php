@@ -7,6 +7,7 @@ use Zuber\Kit\Modules\Pages\Mcp\Tools\AddBlockTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\CreatePageTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\DeleteBlockTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\GetPageTool;
+use Zuber\Kit\Modules\Pages\Mcp\Tools\ImageUploadUrlTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\ListBlockTypesTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\ListPagesTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\ListSharedBlocksTool;
@@ -46,6 +47,7 @@ class PagesServer extends Server
         ListSharedBlocksTool::class,
         UpdateSharedBlockTool::class,
         UploadImageTool::class,
+        ImageUploadUrlTool::class,
     ];
 
     protected string $name = 'Конструктор страниц';
@@ -65,7 +67,7 @@ class PagesServer extends Server
         - data — поля блока из list-block-types и оформление: anchor (якорь для ссылок #anchor), hidden, background, padding_top, padding_bottom; пусто — как задано в блоке.
         - Точечные правки: add-block, update-block (меняются только переданные поля), move-block, delete-block. После вставки и удаления номера сдвигаются — перечитай get-page.
         - Общий блок (повторяется на многих страницах): {type: "shared", data: {shared_block_id}}; его содержимое правится один раз — update-shared-block. Шапка и подвал сайта — тоже общие блоки.
-        - Картинки: upload-image по https-ссылке → path в поле картинки блока.
+        - Картинки: по https-ссылке — upload-image; файлом (фото из чата, файл с диска) — image-upload-url и curl из ответа в песочнице. В обоих случаях в ответе path — его ставь в поле картинки блока.
         - Кнопки: #form — форма заявки во всплывающем окне, #form-3 — форма № 3, #anchor — к блоку с этим якорем, tel:+7… — звонок.
 
         Правила:

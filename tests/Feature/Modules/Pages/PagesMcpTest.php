@@ -1,7 +1,12 @@
 <?php
 
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Zuber\Kit\Core\Setup\ExceptionsSetup;
+use Zuber\Kit\Modules\Pages\Actions\CreateImageUploadLinkAction;
 use Zuber\Kit\Modules\Pages\Enums\PageStatusEnum;
 use Zuber\Kit\Modules\Pages\Enums\SharedBlockPositionEnum;
 use Zuber\Kit\Modules\Pages\Mcp\PagesServer;
@@ -9,6 +14,7 @@ use Zuber\Kit\Modules\Pages\Mcp\Tools\AddBlockTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\CreatePageTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\DeleteBlockTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\GetPageTool;
+use Zuber\Kit\Modules\Pages\Mcp\Tools\ImageUploadUrlTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\ListBlockTypesTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\ListPagesTool;
 use Zuber\Kit\Modules\Pages\Mcp\Tools\ListSharedBlocksTool;
@@ -23,9 +29,18 @@ use Zuber\Kit\Modules\Pages\Models\SharedBlock;
 use Zuber\Kit\Tests\Fixtures\RoleEnum;
 
 beforeEach(function (): void {
+    // Отказы показывает обработка исключений кита — в проекте её подключает bootstrap/app.php
+    $setup = new ExceptionsSetup;
+    $setup(new Exceptions(app(ExceptionHandler::class)));
+
     $this->seedRoles();
     $this->admin = $this->userWithRole(RoleEnum::ADMIN);
 });
+
+function mcpPng(): string
+{
+    return (string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', true);
+}
 
 /**
  * @param array<int, array<string, mixed>> $blocks
@@ -50,6 +65,7 @@ it('offers every page builder tool under its name', function (): void {
     expect(collect(PagesServer::TOOLS)->map(fn (string $tool): string => app($tool)->name())->all())->toBe([
         'list-block-types', 'list-pages', 'get-page', 'create-page', 'update-page', 'set-blocks', 'add-block',
         'update-block', 'move-block', 'delete-block', 'list-shared-blocks', 'update-shared-block', 'upload-image',
+        'image-upload-url',
     ]);
 });
 
@@ -214,3 +230,49 @@ it('refuses images that are not public https pictures', function (string $url, s
     'the site itself' => ['https://127.0.0.1/photo.png', 'внутреннюю сеть'],
     'not an image' => ['https://93.184.215.14/page.png', 'это не картинка'],
 ]);
+
+it('gives a one-time link to send an image file with curl', function (): void {
+    PagesServer::actingAs($this->admin)->tool(ImageUploadUrlTool::class)
+        ->assertOk()
+        ->assertSee(['_kit/pages/images/', 'signature=', "curl -sS -F 'file=@"]);
+});
+
+it('takes an image file by the one-time link only once', function (): void {
+    Storage::fake('public');
+    $url = app(CreateImageUploadLinkAction::class)->handle()->url;
+
+    $this->post($url, ['file' => UploadedFile::fake()->createWithContent('photo.png', mcpPng())])
+        ->assertCreated()
+        ->assertJsonPath('path', fn (string $path): bool => str_starts_with($path, 'blocks/') && str_ends_with($path, '.png'));
+
+    $this->post($url, ['file' => UploadedFile::fake()->createWithContent('photo.png', mcpPng())])
+        ->assertUnprocessable()
+        ->assertJsonPath('message', fn (string $message): bool => str_contains($message, 'уже использована'));
+
+    expect(Storage::disk('public')->allFiles('blocks'))->toHaveCount(1);
+});
+
+it('keeps the link when the file is not an image', function (): void {
+    Storage::fake('public');
+    $url = app(CreateImageUploadLinkAction::class)->handle()->url;
+
+    $this->post($url, ['file' => UploadedFile::fake()->createWithContent('page.png', '<html>не картинка</html>')])
+        ->assertUnprocessable()
+        ->assertJsonPath('message', fn (string $message): bool => str_contains($message, 'это не картинка'));
+    $this->post($url, [])->assertUnprocessable()->assertJsonValidationErrors('file');
+
+    $this->post($url, ['file' => UploadedFile::fake()->createWithContent('photo.png', mcpPng())])->assertCreated();
+});
+
+it('refuses a forged or expired upload link', function (): void {
+    Storage::fake('public');
+    $url = app(CreateImageUploadLinkAction::class)->handle()->url;
+    $file = fn (): UploadedFile => UploadedFile::fake()->createWithContent('photo.png', mcpPng());
+
+    $this->post(preg_replace('/signature=\w+/', 'signature=forged', $url) ?? '', ['file' => $file()])->assertForbidden();
+
+    $this->travel(11)->minutes();
+    $this->post($url, ['file' => $file()])->assertForbidden();
+
+    expect(Storage::disk('public')->allFiles())->toBeEmpty();
+});

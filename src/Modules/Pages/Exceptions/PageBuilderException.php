@@ -55,6 +55,11 @@ final class PageBuilderException extends DomainException
         return new self(__('Адрес «:path» занят разделом сайта.', ['path' => $path]));
     }
 
+    public static function uploadLinkUsed(): self
+    {
+        return new self(__('Ссылка для загрузки уже использована или устарела — возьми новую: image-upload-url.'));
+    }
+
     public static function imageRejected(string $reason): self
     {
         return new self(__('Картинку не загрузить: :reason', ['reason' => $reason]));

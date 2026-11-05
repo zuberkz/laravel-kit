@@ -3,19 +3,25 @@
 namespace Zuber\Kit\Modules\Pages\Services;
 
 use finfo;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Filesystem\Factory;
+use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Str;
 use Zuber\Kit\Modules\Pages\Clients\RemoteImageClient;
+use Zuber\Kit\Modules\Pages\Data\ImageUploadLinkData;
 use Zuber\Kit\Modules\Pages\Exceptions\PageBuilderException;
 
 /**
- * Картинка для блока по ссылке (MCP upload-image): только https и только публичный адрес — сервер
- * сайта не ходит во внутреннюю сеть; принимаются JPEG, PNG, WebP, GIF и AVIF до 10 МБ, тип — по
- * содержимому, а не по ответу сервера. Файл ложится туда же, куда загрузки из админки.
+ * Картинки для блоков не из админки (MCP): по https-ссылке (upload-image) или файлом по одноразовой
+ * ссылке (image-upload-url) — фото из чата или с диска, которое ассистент отправляет из своей
+ * песочницы. Ссылка на скачивание — только https и только публичный адрес: сервер сайта не ходит во
+ * внутреннюю сеть. Принимаются JPEG, PNG, WebP, GIF и AVIF до 10 МБ, тип — по содержимому, а не по
+ * имени или ответу сервера. Файл ложится туда же, куда загрузки из админки.
  */
 final readonly class BlockImageUploadService
 {
-    private const int MAX_BYTES = 10 * 1024 * 1024;
+    public const int MAX_KILOBYTES = 10 * 1024;
+    private const int LINK_MINUTES = 10;
 
     /**
      * @var array<string, string> тип содержимого => расширение файла
@@ -32,6 +38,8 @@ final readonly class BlockImageUploadService
         private RemoteImageClient $client,
         private BlockImageService $images,
         private Factory $filesystems,
+        private Cache $cache,
+        private UrlGenerator $urls,
     ) {}
 
     /**
@@ -43,23 +51,74 @@ final readonly class BlockImageUploadService
     {
         $this->assertPublicHttps($url);
 
-        $image = $this->client->download($url);
+        $content = $this->client->download($url)->content;
 
-        if (strlen($image->content) > self::MAX_BYTES) {
+        return $this->put($content, $this->extension($content));
+    }
+
+    /**
+     * Одноразовая ссылка для отправки файла: подписана, живёт 10 минут, токен в ней срабатывает один раз.
+     */
+    public function issueLink(): ImageUploadLinkData
+    {
+        $token = Str::random(40);
+        $expiresAt = now()->addMinutes(self::LINK_MINUTES);
+
+        $this->cache->put($this->tokenKey($token), true, $expiresAt);
+
+        return new ImageUploadLinkData(
+            // Подпись по пути без схемы и домена: за прокси (https снаружи, http внутри) она та же
+            url: $this->urls->to($this->urls->temporarySignedRoute('kit.pages.images.upload', $expiresAt, ['token' => $token], absolute: false)),
+            expiresAt: $expiresAt,
+        );
+    }
+
+    /**
+     * Файл по одноразовой ссылке: сначала проверка картинки — ошибка в файле не тратит ссылку, — потом
+     * ссылка гасится и файл сохраняется.
+     *
+     *
+     * @throws PageBuilderException
+     *
+     * @return string путь для поля картинки в данных блока
+     */
+    public function storeUploaded(string $token, string $content): string
+    {
+        $extension = $this->extension($content);
+
+        if ($this->cache->pull($this->tokenKey($token)) !== true) {
+            throw PageBuilderException::uploadLinkUsed();
+        }
+
+        return $this->put($content, $extension);
+    }
+
+    /**
+     * @throws PageBuilderException
+     */
+    private function extension(string $content): string
+    {
+        if (strlen($content) > self::MAX_KILOBYTES * 1024) {
             throw PageBuilderException::imageRejected(__('файл больше 10 МБ.'));
         }
 
-        $type = (new finfo(FILEINFO_MIME_TYPE))->buffer($image->content);
-        $extension = is_string($type) ? (self::EXTENSIONS[$type] ?? null) : null;
+        $type = (new finfo(FILEINFO_MIME_TYPE))->buffer($content);
 
-        if ($extension === null) {
-            throw PageBuilderException::imageRejected(__('это не картинка JPEG, PNG, WebP, GIF или AVIF.'));
-        }
+        return (is_string($type) ? (self::EXTENSIONS[$type] ?? null) : null)
+            ?? throw PageBuilderException::imageRejected(__('это не картинка JPEG, PNG, WebP, GIF или AVIF.'));
+    }
 
+    private function put(string $content, string $extension): string
+    {
         $path = $this->images->directory() . '/' . Str::uuid()->toString() . '.' . $extension;
-        $this->filesystems->disk($this->images->diskName())->put($path, $image->content);
+        $this->filesystems->disk($this->images->diskName())->put($path, $content);
 
         return $path;
+    }
+
+    private function tokenKey(string $token): string
+    {
+        return 'kit-pages-image-upload:' . $token;
     }
 
     /**
