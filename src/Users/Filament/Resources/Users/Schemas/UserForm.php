@@ -12,7 +12,6 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rules\Password;
 use Zuber\Kit\Users\Data\UsersSettingsData;
-use Zuber\Kit\Users\Filament\Resources\Users\Actions\CopyPasswordAction;
 use Zuber\Kit\Users\Filament\Resources\Users\Actions\GeneratePasswordAction;
 use Zuber\Kit\Users\Filament\Resources\Users\UserResource;
 use Zuber\Kit\Users\Services\UserAccessService;
@@ -69,7 +68,9 @@ final class UserForm
                     ->placeholder(fn (string $operation): string => $operation === 'create' ? __('Новый пароль') : __('Новый пароль, если нужно сменить'))
                     ->password()
                     ->revealable()
-                    ->suffixActions([GeneratePasswordAction::make(), CopyPasswordAction::make()])
+                    ->suffixAction(GeneratePasswordAction::make())
+                    // Буфер обмена браузер даёт только на https и localhost: локально — https://<проект>.local
+                    ->copyable(copyMessage: __('Пароль скопирован'))
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->rule(Password::default())
                     ->dehydrated(fn (?string $state): bool => filled($state))

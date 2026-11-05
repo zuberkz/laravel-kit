@@ -58,7 +58,7 @@ it('generates a password into the field and reveals it', function (): void {
         ->assertDispatched('kit-password-generated')
         ->assertNotified('Пароль сгенерирован');
 
-    $page->assertActionExists(TestAction::make('copyPassword')->schemaComponent('password', 'form'));
+    $page->assertActionExists(TestAction::make('copy')->schemaComponent('password', 'form'));
 
     expect($page->get('data.password'))->toMatch('/^[a-km-np-zA-HJ-NP-Z2-9]{4}(-[a-km-np-zA-HJ-NP-Z2-9]{4}){2}$/');
 });
