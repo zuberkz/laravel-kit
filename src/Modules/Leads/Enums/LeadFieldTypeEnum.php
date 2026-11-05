@@ -88,8 +88,10 @@ enum LeadFieldTypeEnum: string implements HasLabel
         $component
             ->label($field->label)
             ->required($field->required && $this !== self::CHECKBOX)
-            ->helperText($field->hint)
-            ->columnSpan($field->half ? 1 : 'full');
+            ->helperText($field->hint);
+
+        // columnSpan('full') задаёт только самый узкий экран — на всю ширину на всех размерах даёт columnSpanFull()
+        $field->half ? $component->columnSpan(1) : $component->columnSpanFull();
 
         if ($field->placeholder !== null && method_exists($component, 'placeholder')) {
             $component->placeholder($field->placeholder);
