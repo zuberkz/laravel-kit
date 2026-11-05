@@ -55,9 +55,10 @@ admin panel.
 - There are no `x-ui` field components: every input on a screen is a Filament field. The
   showcase of all fields in every state is a Livewire component `dev.fields` on `/dev/ui`; a new
   field style or custom field goes there too.
-- The deploy builds assets before `composer install`, so `vendor/` is absent during `npm run
-  build`: copy what you need from the Filament package styles into `resources/css/filament/`
-  instead of importing `vendor/filament/...` (or change the pipeline first).
+- The shared deploy installs Composer dependencies before `npm run build`, so the site styles may
+  import the Filament package styles from `vendor/filament/*/resources/css/index.css`
+  (`resources/css/filament/index.css`); the layout of the site has `@filamentStyles` and
+  `@filamentScripts`.
 - Field styles: `resources/css/filament/index.css` imports the Filament package styles, then one
   override file per component at the same path as its source in
   `vendor/filament/<package>/resources/css` (`support/input-wrapper.css`, `support/toggle.css`,

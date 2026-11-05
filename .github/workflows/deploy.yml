@@ -119,6 +119,11 @@ jobs:
                     git commit -m "chore(deps): зафиксировать composer.lock"
                     git push origin "HEAD:${DEPLOY_BRANCH}"
 
+            # Зависимости до сборки стилей: стили сайта импортируют CSS пакетов из vendor (поля Filament)
+            -   name: Install dependencies
+                if: hashFiles('composer.json') != ''
+                run: composer install --no-interaction --prefer-dist --no-progress
+
             # Сборка до проверок: тесты страниц видят манифест Vite
             -   name: Build assets
                 if: hashFiles('package.json') != ''
@@ -134,7 +139,6 @@ jobs:
             -   name: Check code
                 if: hashFiles('composer.json') != '' && inputs.deploy-env != 'staging'
                 run: |
-                    composer install --no-interaction --prefer-dist --no-progress
                     # Известная уязвимость в зависимостях — деплоя нет; заброшенные пакеты только показываем
                     composer audit --locked --abandoned=report
                     if [ -f pint.json ]; then vendor/bin/pint --test; fi
