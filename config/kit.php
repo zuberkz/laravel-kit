@@ -20,4 +20,10 @@ return [
     'spam' => [
         'min_seconds' => 3,
     ],
+
+    // robots.txt и sitemap.xml из маршрутов кита; disallow — дополнительные закрытые пути на проде
+    'seo' => [
+        'routes' => true,
+        'robots_disallow' => [],
+    ],
 ];
