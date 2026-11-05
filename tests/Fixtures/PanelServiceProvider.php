@@ -12,7 +12,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Zuber\Kit\Users\UsersPlugin;
 
-final class AdminPanelServiceProvider extends PanelProvider
+final class PanelServiceProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {

@@ -29,10 +29,12 @@ admin panel.
   class with a static `make(): Step`. Local schemas — in `Schemas/` next to the resource;
   reused fields/columns/filters — in `app/Filament/Schemas/`.
 - Navigation groups — an enum (`NavigationGroupEnum`); every `Select` is `->native(false)`.
-- The admin panel lives at `/panel`, never `/admin` (the first path bots try): panel id and path
-  `panel`, provider `App\Providers\Filament\AdminPanelServiceProvider`. `filament:install`
-  generates `AdminPanelProvider`, and the Pest Laravel preset wants every provider to end with
-  `ServiceProvider` — rename it (and the line in `bootstrap/providers.php`).
+- The admin panel never lives at `/admin` (the first path bots try), and its real path is never
+  written in code: `->path(config()->string('admin.path'))` with `'path' => env('ADMIN_PATH')` in
+  `config/admin.php` and the value in `.env` — so it does not leak through a public repository
+  and changes without a deploy of code. Provider `App\Providers\Filament\AdminPanelServiceProvider`:
+  `filament:install` generates `AdminPanelProvider`, and the Pest Laravel preset wants every
+  provider to end with `ServiceProvider` — rename it (and the line in `bootstrap/providers.php`).
 
 ## Forms on the site
 - Site forms are Filament Forms inside Livewire components (`HasSchemas` + `InteractsWithSchemas`),

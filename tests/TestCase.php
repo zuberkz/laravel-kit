@@ -22,7 +22,7 @@ use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
 use Zuber\Kit\Access\Actions\SyncRolesAction;
 use Zuber\Kit\KitServiceProvider;
-use Zuber\Kit\Tests\Fixtures\AdminPanelServiceProvider;
+use Zuber\Kit\Tests\Fixtures\PanelServiceProvider;
 use Zuber\Kit\Tests\Fixtures\RoleEnum;
 use Zuber\Kit\Tests\Fixtures\User;
 
@@ -55,7 +55,7 @@ abstract class TestCase extends Orchestra
             FilamentServiceProvider::class,
             PermissionServiceProvider::class,
             KitServiceProvider::class,
-            AdminPanelServiceProvider::class,
+            PanelServiceProvider::class,
         ];
     }
 

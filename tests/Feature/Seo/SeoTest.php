@@ -20,14 +20,12 @@ it('closes the whole site in robots.txt outside production', function (): void {
         ->assertSeeText("User-agent: *\nDisallow: /", false);
 });
 
-it('opens the site in production and points to the sitemap without naming the admin path', function (): void {
+it('opens the site in production and points to the sitemap, listing only the configured paths', function (): void {
     production();
     config(['kit.seo.robots_disallow' => ['/cart']]);
 
-    $this->get('http://www.example.kz/robots.txt')
-        ->assertOk()
-        ->assertSee("User-agent: *\nDisallow: /cart\n\nSitemap: https://example.kz/sitemap.xml", false)
-        ->assertDontSee('panel');
+    expect($this->get('http://www.example.kz/robots.txt')->assertOk()->getContent())
+        ->toBe("User-agent: *\nDisallow: /cart\n\nSitemap: https://example.kz/sitemap.xml\n");
 });
 
 it('lists every url of the registered sources once, on APP_URL', function (): void {
