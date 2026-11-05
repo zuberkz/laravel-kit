@@ -1,7 +1,8 @@
 {{--
     Всплывающее окно с формой заявки (Zuber\Kit\Modules\Leads\Livewire\LeadModal). Ссылки #form и #form-N
     на странице открывают его вместо перехода; закрывается крестиком, Esc и кликом мимо окна. Пока окно
-    открыто, страница не прокручивается, а место полосы прокрутки остаётся — вёрстка не прыгает вбок.
+    открыто, страница не прокручивается, а вместо полосы прокрутки у неё отступ той же ширины — вёрстка
+    не прыгает вбок, а затемнение закрывает весь экран.
 --}}
 <div
     x-data="{ open: $wire.entangle('open') }"
@@ -15,7 +16,7 @@
     x-on:keydown.escape.window="open = false"
     x-effect="
         const html = document.documentElement;
-        html.style.scrollbarGutter = open && window.innerWidth > html.clientWidth ? 'stable' : '';
+        html.style.paddingRight = open ? (window.innerWidth - html.clientWidth) + 'px' : '';
         html.classList.toggle('overflow-hidden', open);
     "
 >
