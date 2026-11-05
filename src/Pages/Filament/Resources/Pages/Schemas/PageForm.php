@@ -7,7 +7,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -21,7 +26,7 @@ use Zuber\Kit\Pages\Filament\PageBuilder;
 use Zuber\Kit\Pages\Support\PagePathSupport;
 
 /**
- * Страница: основные настройки, блоки конструктора и SEO — одним экраном.
+ * Страница вкладками: блоки конструктора, настройки страницы и SEO.
  */
 final class PageForm
 {
@@ -30,21 +35,35 @@ final class PageForm
         return $schema
             ->columns(1)
             ->components([
-                self::page(),
-                Section::make(__('Блоки'))
-                    ->icon(Heroicon::OutlinedSquares2x2)
-                    ->description(__('Перетаскивайте, чтобы поменять порядок. Повторяющийся на многих страницах раздел — «Общий блок».'))
-                    ->schema([PageBuilder::make()]),
-                self::seo(),
+                Tabs::make()
+                    ->tabs([
+                        Tab::make(__('Блоки'))
+                            ->icon(Heroicon::OutlinedSquares2x2)
+                            ->schema([
+                                Text::make(__('Перетаскивайте, чтобы поменять порядок. Повторяющийся на многих страницах раздел — «Общий блок».'))
+                                    ->color('gray'),
+                                PageBuilder::make(),
+                            ]),
+                        Tab::make(__('Страница'))
+                            ->icon(Heroicon::OutlinedDocumentText)
+                            ->schema(self::page()),
+                        Tab::make(__('SEO'))
+                            ->icon(Heroicon::OutlinedMagnifyingGlass)
+                            ->schema(self::seo()),
+                    ])
+                    // Новую страницу начинают с названия и адреса, существующую — с блоков
+                    ->activeTab(fn (string $operation): int => $operation === 'create' ? 2 : 1)
+                    ->persistTabInQueryString(),
             ]);
     }
 
-    private static function page(): Section
+    /**
+     * @return array<int, Component>
+     */
+    private static function page(): array
     {
-        return Section::make(__('Страница'))
-            ->icon(Heroicon::OutlinedDocumentText)
-            ->columns(['md' => 2])
-            ->schema([
+        return [
+            Grid::make(['md' => 2])->schema([
                 TextInput::make('title')
                     ->label(__('Название'))
                     ->required()
@@ -73,28 +92,31 @@ final class PageForm
                     ->label(__('Статус'))
                     ->options(PageStatusEnum::class)
                     ->default(PageStatusEnum::DRAFT)
+                    ->selectablePlaceholder(false)
                     ->native(false)
                     ->required(),
-                Toggle::make('show_header')
-                    ->label(__('Шапка сайта'))
-                    ->default(true)
-                    ->inline(false),
-                Toggle::make('show_footer')
-                    ->label(__('Подвал сайта'))
-                    ->default(true)
-                    ->inline(false),
-            ]);
+            ]),
+            Fieldset::make(__('Общие блоки сайта на этой странице'))
+                ->columns(['sm' => 2])
+                ->schema([
+                    Toggle::make('show_header')
+                        ->label(__('Шапка'))
+                        ->default(true),
+                    Toggle::make('show_footer')
+                        ->label(__('Подвал'))
+                        ->default(true),
+                ]),
+        ];
     }
 
-    private static function seo(): Section
+    /**
+     * @return array<int, Component>
+     */
+    private static function seo(): array
     {
-        return Section::make(__('SEO'))
-            ->icon(Heroicon::OutlinedMagnifyingGlass)
-            ->description(__('Пусто — заголовок страницы берётся из названия'))
-            ->collapsible()
-            ->collapsed()
-            ->columns(['md' => 2])
-            ->schema([
+        return [
+            Text::make(__('Пусто — заголовок страницы берётся из названия.'))->color('gray'),
+            Grid::make(['md' => 2])->schema([
                 TextInput::make('seo_title')
                     ->label(__('Title'))
                     ->maxLength(70)
@@ -108,8 +130,8 @@ final class PageForm
                     ->label(__('Картинка для соцсетей'))
                     ->helperText(__('1200×630')),
                 Toggle::make('noindex')
-                    ->label(__('Закрыть от поисковиков'))
-                    ->inline(false),
-            ]);
+                    ->label(__('Закрыть от поисковиков')),
+            ]),
+        ];
     }
 }

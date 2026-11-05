@@ -32,6 +32,7 @@ final class PageBuilder
                 self::shared(),
             ])
             ->blockIcons()
+            ->blockNumbers(false)
             ->blockPickerColumns(['md' => 2, 'xl' => 3])
             ->blockPickerWidth('3xl')
             ->addActionLabel(__('Добавить блок'))
