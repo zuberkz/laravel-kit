@@ -4,8 +4,9 @@ namespace Zuber\Kit\Tests\Fixtures;
 
 use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasLabel;
+use Zuber\Kit\Access\Contracts\RoleEnumInterface;
 
-enum RoleEnum: string implements HasDescription, HasLabel
+enum RoleEnum: string implements HasDescription, HasLabel, RoleEnumInterface
 {
     case SUPER_ADMIN = 'super_admin';
     case ADMIN = 'admin';

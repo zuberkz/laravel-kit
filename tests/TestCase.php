@@ -19,13 +19,10 @@ use Kirschbaum\PowerJoins\PowerJoinsServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\PermissionServiceProvider;
+use Zuber\Kit\Access\Actions\SyncRolesAction;
 use Zuber\Kit\KitServiceProvider;
 use Zuber\Kit\Tests\Fixtures\AdminPanelServiceProvider;
-use Zuber\Kit\Tests\Fixtures\PermissionEnum;
 use Zuber\Kit\Tests\Fixtures\RoleEnum;
 use Zuber\Kit\Tests\Fixtures\User;
 
@@ -69,6 +66,7 @@ abstract class TestCase extends Orchestra
     {
         $app['config']->set('auth.providers.users.model', User::class);
         $app['config']->set('database.default', 'testing');
+        $app['config']->set('kit.access.roles', RoleEnum::class);
     }
 
     protected function defineDatabaseMigrations(): void
@@ -77,23 +75,11 @@ abstract class TestCase extends Orchestra
     }
 
     /**
-     * Роли и права из enum — как RolesAndPermissionsSeeder проекта.
+     * Роли и права из enum — как kit:sync-roles при деплое.
      */
     protected function seedRoles(): void
     {
-        $registrar = $this->app->make(PermissionRegistrar::class);
-
-        foreach (PermissionEnum::cases() as $permission) {
-            Permission::findOrCreate($permission->value);
-        }
-
-        $registrar->forgetCachedPermissions();
-
-        foreach (RoleEnum::cases() as $role) {
-            Role::findOrCreate($role->value)->syncPermissions($role->permissions());
-        }
-
-        $registrar->forgetCachedPermissions();
+        $this->app->make(SyncRolesAction::class)->handle(RoleEnum::class);
     }
 
     protected function userWithRole(?RoleEnum $role, string $email = ''): User

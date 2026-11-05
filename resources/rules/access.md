@@ -2,15 +2,18 @@
 paths:
   - "app/Policies/**/*.php"
   - "app/Enums/Access/**/*.php"
-  - "database/seeders/RolesAndPermissionsSeeder.php"
 ---
 
 # Access: roles, permissions, policies
 
 - Account roles and permissions — `spatie/laravel-permission` (add it when the site has more than
-  one kind of user): `RoleEnum`, `PermissionEnum`, the permissions of a role in
-  `RoleEnum::permissions()`. A `RolesAndPermissionsSeeder` brings the database in line with the
-  code and runs on every deploy.
+  one kind of user): `App\Enums\Access\RoleEnum` implementing the kit's `RoleEnumInterface`,
+  `PermissionEnum`, the permissions of a role in `RoleEnum::permissions()`. The kit's command
+  `php artisan kit:sync-roles` brings the database in line with the code; the shared deploy runs
+  it after the migrations, the local `DatabaseSeeder` calls `SyncRolesAction`. No seeder of
+  roles in the project. Another enum class — `config/kit.php` → `access.roles`.
+- The admin users and roles screens are the kit's `UsersPlugin` (Filament), not the project's
+  own resources.
 - Policies check **permissions** (`hasPermissionTo`), never role names. A role inside one record
   (owner, participant, assignee) is data of that record, not a spatie role.
 - An ability is a case of an enum `App\Enums\Access\…AbilityEnum`, one enum per policy

@@ -10,6 +10,7 @@
 | Конфиг Pint | `resources/stubs/pint.json` | `--tag=kit-pint` → `pint.json` |
 | `DomainException` и его обработка, канал лога `domain` | `src`, `config` | автозагрузка и сервис-провайдер пакета |
 | Разделы «Пользователи» и «Роли» в Filament | `src/Users` | плагин `UsersPlugin` в панели проекта |
+| Синхронизация ролей и прав с `RoleEnum` | `src/Access` | команда `kit:sync-roles`, её запускает общий деплой |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в

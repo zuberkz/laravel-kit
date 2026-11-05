@@ -203,6 +203,10 @@ jobs:
 
                         if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
                             "$PHP" artisan migrate --force
+                            # Роли и права — по RoleEnum проекта; без spatie/laravel-permission команды нет
+                            if "$PHP" artisan list --raw | grep -q '^kit:sync-roles'; then
+                                "$PHP" artisan kit:sync-roles --no-interaction
+                            fi
                         fi
 
                         [ -e public/storage ] || "$PHP" artisan storage:link
