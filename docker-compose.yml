@@ -1,7 +1,7 @@
 # Проверки пакета в Docker, без PHP на хосте: docker compose run --rm php composer check
 services:
     php:
-        image: composer:2
+        build: .docker
         working_dir: /app
         volumes:
             - ./:/app

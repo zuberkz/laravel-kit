@@ -9,6 +9,7 @@
 | Arch-тесты студии | `resources/stubs/tests/Arch/KitArchTest.php` | `--tag=kit-arch` → `tests/Arch/KitArchTest.php` |
 | Конфиг Pint | `resources/stubs/pint.json` | `--tag=kit-pint` → `pint.json` |
 | `DomainException` и его обработка, канал лога `domain` | `src`, `config` | автозагрузка и сервис-провайдер пакета |
+| Разделы «Пользователи» и «Роли» в Filament | `src/Users` | плагин `UsersPlugin` в панели проекта |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в
@@ -37,6 +38,31 @@ composer require zuberkz/laravel-kit
 ```
 
 Отказы по бизнес-правилам наследуют `Zuber\Kit\Exceptions\DomainException`.
+
+## Пользователи и роли (Filament)
+
+Нужны `filament/filament` ^5 и `spatie/laravel-permission` в проекте — кит их не ставит.
+
+- «Пользователи»: список с ролями и поиском, фильтр по роли; форма — профиль, пароль (кнопка
+  «Сгенерировать» даёт пароль вида `Kp7m-Xw3q-Rt9z` и сразу показывает его, рядом — копирование),
+  роли галочками с описаниями. Записывают действия `CreateUserAction` / `UpdateUserAction`.
+- Супер-администратор (разработчик) виден и выдаётся только супер-администраторам; себя удалить
+  нельзя.
+- «Роли» — только просмотр: роли с правами и числом пользователей. Роли и права задаются в коде
+  (`RoleEnum::permissions()`) и раскладываются сидером.
+
+Модель `User` проекта: трейт `Spatie\Permission\Traits\HasRoles` и интерфейс
+`Zuber\Kit\Users\Contracts\HasRolesInterface`. Панель:
+
+```php
+->plugin(
+    UsersPlugin::make(RoleEnum::class)                    // enum: HasLabel, HasDescription — по желанию
+        ->superAdminRole(RoleEnum::SUPER_ADMIN)
+        ->managePermission(PermissionEnum::MANAGE_USERS)  // без него раздел открыт всем в панели
+        ->permissions(PermissionEnum::class)              // подписи прав в разделе «Роли»
+        ->navigationGroup(NavigationGroupEnum::ACCESS),
+)
+```
 
 ## Деплой
 
@@ -94,6 +120,7 @@ Semver по тегам `vX.Y.Z`. Новое arch-правило или прав�
 ## Разработка
 
 ```bash
+docker compose build
 docker compose run --rm php composer install
 docker compose run --rm php composer check   # pint, larastan, pest
 ```
