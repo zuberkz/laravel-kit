@@ -26,7 +26,15 @@ page `/` named `home` and a fallback: routes of the site always win over pages).
 - Optional fields have defaults in the constructor; a required property without a value makes
   the block skipped and reported, the page still renders. Renaming or removing a property is a
   data change: old pages keep the old key — keep a default or migrate the stored data.
-- `anchor` and `hidden` are added by the kit to every block — not property names of a block.
+- The kit adds "Оформление" to every block — `background` (`BlockBackgroundEnum`: page, surface,
+  brand, inverse), `padding_top` / `padding_bottom` (`BlockSpacingEnum`), `anchor`, `hidden` —
+  not property names of a block. The block's defaults are `background()` and `spacing()` in its
+  class, the only place they are written; an empty field in the admin means "as the block".
+- **A block template sets neither its vertical padding nor its background**: the kit's wrapper
+  does, with the classes `block-bg-*`, `block-pt-*`, `block-pb-*` defined once in the theme
+  (`resources/css/blocks.css`). Brand and inverse backgrounds redefine the colour tokens there
+  (`--ink`, `--muted`, `--surface`, `--line`), so templates keep using `text-ink`, `text-muted`
+  and look right on any background. No raw classes or CSS typed in the admin.
 - Interactivity inside a block is a Livewire component in its template (the lead form below);
   the block itself stays plain Blade.
 

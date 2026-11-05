@@ -6,6 +6,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Zuber\Kit\Pages\Data\PageViewData;
 use Zuber\Kit\Pages\Data\RenderedBlockData;
+use Zuber\Kit\Pages\Enums\BlockBackgroundEnum;
+use Zuber\Kit\Pages\Enums\BlockSpacingEnum;
 use Zuber\Kit\Pages\Enums\SharedBlockPositionEnum;
 use Zuber\Kit\Pages\Exceptions\BlockException;
 use Zuber\Kit\Pages\Models\Page;
@@ -19,6 +21,11 @@ use Zuber\Kit\Pages\Repositories\SharedBlockRepository;
 final readonly class PageRenderService
 {
     public const string SHARED_TYPE = 'shared';
+
+    /**
+     * «Оформление» блока на странице: кит добавляет эти поля к каждому блоку.
+     */
+    public const array SETTINGS = ['anchor', 'hidden', 'background', 'padding_top', 'padding_bottom'];
 
     public function __construct(
         private BlockRegistryService $registry,
@@ -82,6 +89,9 @@ final readonly class PageRenderService
         return new RenderedBlockData(
             view: $class::view(),
             block: $class::fromArray($data),
+            background: BlockBackgroundEnum::tryFrom(self::string($data['background'] ?? null)) ?? $class::background(),
+            paddingTop: BlockSpacingEnum::tryFrom(self::string($data['padding_top'] ?? null)) ?? $class::spacing(),
+            paddingBottom: BlockSpacingEnum::tryFrom(self::string($data['padding_bottom'] ?? null)) ?? $class::spacing(),
             anchor: is_string($anchor) && $anchor !== '' ? $anchor : null,
         );
     }
@@ -107,8 +117,8 @@ final readonly class PageRenderService
             $id = is_numeric($data['shared_block_id'] ?? null) ? (int) $data['shared_block_id'] : 0;
             $block = $shared->get($id) ?? throw BlockException::sharedBlockMissing($id);
 
-            // Якорь — свой у каждой страницы, где стоит общий блок
-            return $this->block($block->type, [...$block->data ?? [], 'anchor' => $data['anchor'] ?? null]);
+            // Якорь, фон и отступы — свои у каждой страницы, где стоит общий блок
+            return $this->block($block->type, [...$block->data ?? [], ...Arr::only($data, self::SETTINGS)]);
         } catch (BlockException $exception) {
             report($exception);
 
@@ -134,5 +144,10 @@ final readonly class PageRenderService
 
             return [];
         }
+    }
+
+    private static function string(mixed $value): string
+    {
+        return is_string($value) ? $value : '';
     }
 }

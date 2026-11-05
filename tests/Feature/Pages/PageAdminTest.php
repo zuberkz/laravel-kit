@@ -71,7 +71,7 @@ it('refuses an address that is malformed, taken or used by the site', function (
 it('copies a shared block into the page on detach', function (): void {
     $shared = SharedBlock::query()->create(['name' => 'Вопросы', 'type' => 'faq', 'data' => ['title' => 'Общие вопросы']]);
     $page = Page::query()->create(['title' => 'Стр', 'path' => '/s', 'status' => PageStatusEnum::DRAFT, 'blocks' => [
-        ['type' => 'shared', 'data' => ['shared_block_id' => $shared->id, 'anchor' => 'faq']],
+        ['type' => 'shared', 'data' => ['shared_block_id' => $shared->id, 'anchor' => 'faq', 'background' => 'brand']],
     ]]);
     $undoFake = Builder::fake();
 
@@ -85,7 +85,7 @@ it('copies a shared block into the page on detach', function (): void {
     $block = $page->refresh()->blocks[0] ?? [];
 
     expect($block['type'] ?? null)->toBe('faq')
-        ->and($block['data'] ?? [])->toMatchArray(['title' => 'Общие вопросы', 'anchor' => 'faq'])
+        ->and($block['data'] ?? [])->toMatchArray(['title' => 'Общие вопросы', 'anchor' => 'faq', 'background' => 'brand'])
         ->and($page->sharedBlocks)->toBeEmpty();
 });
 

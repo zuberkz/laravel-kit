@@ -12,6 +12,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 use Zuber\Kit\Pages\Blocks\Block;
+use Zuber\Kit\Pages\Enums\BlockBackgroundEnum;
+use Zuber\Kit\Pages\Enums\BlockSpacingEnum;
 use Zuber\Kit\Pages\Filament\Resources\SharedBlocks\SharedBlockResource;
 use Zuber\Kit\Pages\Repositories\SharedBlockRepository;
 use Zuber\Kit\Pages\Services\BlockRegistryService;
@@ -43,18 +45,35 @@ final class PageBuilder
     }
 
     /**
-     * Поля, которые кит добавляет к каждому блоку.
+     * «Оформление», которое кит добавляет к каждому блоку: пустой фон или отступ — «как у блока»,
+     * значение по умолчанию задаёт класс блока.
      *
+     * @param  class-string<Block>|null $class блок; null — общий блок, его умолчания у самого блока
      * @return array<int, Section>
      */
-    public static function settings(): array
+    public static function settings(?string $class = null): array
     {
         return [
             Section::make(__('Оформление'))
                 ->compact()
                 ->collapsed()
-                ->columns(2)
+                ->columns(['md' => 3])
                 ->schema([
+                    Select::make('background')
+                        ->label(__('Фон'))
+                        ->options(BlockBackgroundEnum::class)
+                        ->placeholder(self::byDefault($class === null ? null : $class::background()))
+                        ->native(false),
+                    Select::make('padding_top')
+                        ->label(__('Отступ сверху'))
+                        ->options(BlockSpacingEnum::class)
+                        ->placeholder(self::byDefault($class === null ? null : $class::spacing()))
+                        ->native(false),
+                    Select::make('padding_bottom')
+                        ->label(__('Отступ снизу'))
+                        ->options(BlockSpacingEnum::class)
+                        ->placeholder(self::byDefault($class === null ? null : $class::spacing()))
+                        ->native(false),
                     TextInput::make('anchor')
                         ->label(__('Якорь'))
                         ->prefix('#')
@@ -63,7 +82,8 @@ final class PageBuilder
                         ->helperText(__('Для ссылок из меню: #prices')),
                     Toggle::make('hidden')
                         ->label(__('Скрыть блок'))
-                        ->helperText(__('Блок остаётся в странице, но не выводится')),
+                        ->helperText(__('Блок остаётся в странице, но не выводится'))
+                        ->columnSpan(['md' => 2]),
                 ]),
         ];
     }
@@ -76,7 +96,17 @@ final class PageBuilder
         return BuilderBlock::make($class::type())
             ->label(fn (?array $state): string => self::itemLabel($class::label(), $state))
             ->icon($class::icon())
-            ->schema([...$class::fields(), ...self::settings()]);
+            ->schema([...$class::fields(), ...self::settings($class)]);
+    }
+
+    /**
+     * Подсказка пустого поля оформления: какое значение возьмётся у блока.
+     */
+    private static function byDefault(BlockBackgroundEnum|BlockSpacingEnum|null $value): string
+    {
+        return $value === null
+            ? __('Как у блока')
+            : __('Как у блока: :value', ['value' => mb_strtolower($value->getLabel())]);
     }
 
     private static function shared(): BuilderBlock
@@ -135,7 +165,7 @@ final class PageBuilder
 
                 $state[$key] = [
                     'type' => $shared->type,
-                    'data' => [...$shared->data ?? [], 'anchor' => Arr::get($item, 'data.anchor'), 'hidden' => (bool) Arr::get($item, 'data.hidden')],
+                    'data' => [...$shared->data ?? [], ...Arr::only(is_array($item['data'] ?? null) ? $item['data'] : [], PageRenderService::SETTINGS)],
                 ];
 
                 $component->rawState($state);

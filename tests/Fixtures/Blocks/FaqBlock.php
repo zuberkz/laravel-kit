@@ -5,6 +5,7 @@ namespace Zuber\Kit\Tests\Fixtures\Blocks;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Zuber\Kit\Pages\Blocks\Block;
+use Zuber\Kit\Pages\Enums\BlockBackgroundEnum;
 
 final readonly class FaqBlock extends Block
 {
@@ -27,6 +28,11 @@ final readonly class FaqBlock extends Block
             TextInput::make('title'),
             Repeater::make('items')->schema([TextInput::make('question'), TextInput::make('answer')]),
         ];
+    }
+
+    public static function background(): BlockBackgroundEnum
+    {
+        return BlockBackgroundEnum::SURFACE;
     }
 
     public static function example(): array

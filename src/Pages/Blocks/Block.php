@@ -8,6 +8,8 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionParameter;
+use Zuber\Kit\Pages\Enums\BlockBackgroundEnum;
+use Zuber\Kit\Pages\Enums\BlockSpacingEnum;
 use Zuber\Kit\Pages\Exceptions\BlockException;
 
 /**
@@ -27,7 +29,8 @@ use Zuber\Kit\Pages\Exceptions\BlockException;
  *         }
  *     }
  *
- * Поля anchor и hidden кит добавляет к каждому блоку сам — свойства с такими именами заняты.
+ * Поля «Оформления» (anchor, hidden, background, padding_top, padding_bottom) кит добавляет к каждому
+ * блоку сам — свойства с такими именами заняты. Фон и отступы по умолчанию — background() и spacing().
  */
 abstract readonly class Block
 {
@@ -59,6 +62,22 @@ abstract readonly class Block
     public static function example(): array
     {
         return [];
+    }
+
+    /**
+     * Фон по умолчанию: в админке поле пустое — «как у блока».
+     */
+    public static function background(): BlockBackgroundEnum
+    {
+        return BlockBackgroundEnum::PAGE;
+    }
+
+    /**
+     * Отступы сверху и снизу по умолчанию.
+     */
+    public static function spacing(): BlockSpacingEnum
+    {
+        return BlockSpacingEnum::MEDIUM;
     }
 
     public static function view(): string

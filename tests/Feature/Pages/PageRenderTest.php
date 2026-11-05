@@ -67,6 +67,21 @@ it('skips hidden blocks and gives a block its anchor', function (): void {
     $this->get('/prices')->assertDontSee('Скрытый')->assertSee('id="prices"', false);
 });
 
+it('gives a block the background and spacing of its class unless the page overrides them', function (): void {
+    $form = SharedBlock::query()->create(['name' => 'Вопросы', 'type' => 'faq', 'data' => ['title' => 'Общие']]);
+    page('/look', [
+        ['type' => 'faq', 'data' => ['title' => 'По умолчанию']],
+        ['type' => 'hero', 'data' => ['title' => 'Свой фон', 'background' => 'inverse', 'padding_top' => 'none', 'padding_bottom' => 'lg']],
+        ['type' => 'shared', 'data' => ['shared_block_id' => $form->id, 'background' => 'brand']],
+    ]);
+
+    $this->get('/look')->assertSeeInOrder([
+        'block-bg-surface block-pt-md block-pb-md', 'По умолчанию',
+        'block-bg-inverse block-pt-none block-pb-lg', 'Свой фон',
+        'block-bg-brand block-pt-md block-pb-md', 'Общие',
+    ], false);
+});
+
 it('renders shared blocks, the site header and footer, and lets a page switch them off', function (): void {
     $form = SharedBlock::query()->create(['name' => 'Вопросы', 'type' => 'faq', 'data' => ['title' => 'Общие вопросы']]);
     SharedBlock::query()->create(['name' => 'Шапка', 'type' => 'hero', 'data' => ['title' => 'Шапка сайта'], 'position' => SharedBlockPositionEnum::HEADER]);
