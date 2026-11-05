@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Zuber\Kit\Leads\LeadsPlugin;
 use Zuber\Kit\Pages\PagesPlugin;
 use Zuber\Kit\Users\UsersPlugin;
 
@@ -29,6 +30,7 @@ final class PanelServiceProvider extends PanelProvider
                     ->permissions(PermissionEnum::class),
             )
             ->plugin(PagesPlugin::make())
+            ->plugin(LeadsPlugin::make())
             ->middleware([
                 EncryptCookies::class,
                 StartSession::class,

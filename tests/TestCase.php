@@ -77,6 +77,7 @@ abstract class TestCase extends Orchestra
             'views' => __DIR__ . '/Fixtures/views/blocks',
             'layout' => 'test-layout',
         ]);
+        $app['config']->set('kit.leads', ['enabled' => true, 'mail_to' => ['team@example.kz']]);
     }
 
     /**

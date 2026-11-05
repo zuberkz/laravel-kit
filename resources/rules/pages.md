@@ -6,12 +6,12 @@ paths:
   - "routes/web.php"
 ---
 
-# Page builder (kit)
+# Page builder and leads (kit)
 
 Pages of the site are built in the admin from blocks: the kit's `PagesPlugin` ("Страницы",
-"Общие блоки"), switched on in `config/kit.php` (`pages.enabled`), routes — `Route::kitPages()`
-in `routes/web.php` (the home page `/` named `home` and a fallback: routes of the site always
-win over pages).
+"Общие блоки"), `LeadsPlugin` ("Заявки"), switched on in `config/kit.php`
+(`pages.enabled`, `leads.enabled`), routes — `Route::kitPages()` in `routes/web.php` (the home
+page `/` named `home` and a fallback: routes of the site always win over pages).
 
 ## A block is one class and one template
 - `app/Blocks/HeroBlock.php` — `final readonly class HeroBlock extends Zuber\Kit\Pages\Blocks\Block`:
@@ -27,8 +27,8 @@ win over pages).
   the block skipped and reported, the page still renders. Renaming or removing a property is a
   data change: old pages keep the old key — keep a default or migrate the stored data.
 - `anchor` and `hidden` are added by the kit to every block — not property names of a block.
-- Interactivity inside a block is a Livewire component in its template; the block itself stays
-  plain Blade.
+- Interactivity inside a block is a Livewire component in its template (the lead form below);
+  the block itself stays plain Blade.
 
 ## Shared blocks
 - A section repeated on many pages (a lead form, advantages) is a shared block: edited once in
@@ -41,6 +41,12 @@ win over pages).
 `kit.pages.layout` (default `layouts.app`) gets `title`, `description`, `ogImage`, `noindex`
 and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `@filamentStyles`,
 `@filamentScripts`.
+
+## Leads
+- The form is `<livewire:kit-lead-form :source="…" :button-label="…" />` (name, phone, comment,
+  honeypot, a rate limit per IP): a lead is stored, the team gets a queued mail at
+  `kit.leads.mail_to` (`LEADS_MAIL_TO` in `.env`, comma-separated), managers work with it in
+  "Заявки". A site does not build its own lead table or form.
 
 ## Tests
 One test renders every block of `app/Blocks` from its `example()`; a new block needs no new

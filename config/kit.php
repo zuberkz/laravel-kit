@@ -38,4 +38,12 @@ return [
         'disk' => 'public',
         'image_directory' => 'blocks',
     ],
+
+    // Заявки с сайта: mail_to — адреса для уведомлений (список или строка через запятую из .env),
+    // per_minute — заявок с одного IP в минуту
+    'leads' => [
+        'enabled' => false,
+        'mail_to' => [],
+        'per_minute' => 5,
+    ],
 ];

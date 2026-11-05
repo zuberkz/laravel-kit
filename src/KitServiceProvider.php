@@ -7,9 +7,11 @@ use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 use Zuber\Kit\Access\Commands\SyncRolesCommand;
 use Zuber\Kit\Http\Middleware\SecurityHeadersMiddleware;
+use Zuber\Kit\Leads\Livewire\LeadForm;
 use Zuber\Kit\Pages\Http\Controllers\PageController;
 use Zuber\Kit\Pages\Seo\PagesSitemapSource;
 use Zuber\Kit\Seo\Contracts\SitemapSourceInterface;
@@ -18,8 +20,8 @@ use Zuber\Kit\Seo\Services\SitemapService;
 
 /**
  * Что кит даёт проекту сам: настройки kit.*, канал лога domain, заголовки безопасности и noindex
- * вне прода на каждый ответ, robots.txt и sitemap.xml, команда kit:sync-roles, а если проект его
- * включил (kit.pages.enabled) — конструктор страниц. Файлы проект
+ * вне прода на каждый ответ, robots.txt и sitemap.xml, команда kit:sync-roles, а если проект их
+ * включил (kit.pages.enabled, kit.leads.enabled) — конструктор страниц и форму заявки. Файлы проект
  * забирает через vendor:publish — каждая группа своим тегом, выбор в post-update-cmd.
  */
 final class KitServiceProvider extends ServiceProvider
@@ -55,6 +57,10 @@ final class KitServiceProvider extends ServiceProvider
 
         if ($config->get('kit.pages.enabled') === true) {
             $this->bootPages($config);
+        }
+
+        if ($config->get('kit.leads.enabled') === true && class_exists(Livewire::class)) {
+            Livewire::component('kit-lead-form', LeadForm::class);
         }
 
         if ($this->app->runningInConsole()) {
@@ -102,5 +108,8 @@ final class KitServiceProvider extends ServiceProvider
             $migrations . '/2026_11_05_000001_create_pages_table.php' => database_path('migrations/2026_11_05_000001_create_pages_table.php'),
             $migrations . '/2026_11_05_000002_create_shared_blocks_table.php' => database_path('migrations/2026_11_05_000002_create_shared_blocks_table.php'),
         ], 'kit-pages-migrations');
+        $this->publishesMigrations([
+            $migrations . '/2026_11_05_000003_create_leads_table.php' => database_path('migrations/2026_11_05_000003_create_leads_table.php'),
+        ], 'kit-leads-migrations');
     }
 }
