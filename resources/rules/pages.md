@@ -32,9 +32,12 @@ page `/` named `home` and a fallback: routes of the site always win over pages).
   class, the only place they are written; an empty field in the admin means "as the block".
 - **A block template sets neither its vertical padding nor its background**: the kit's wrapper
   does, with the classes `block-bg-*`, `block-pt-*`, `block-pb-*` defined once in the theme
-  (`resources/css/blocks.css`). Brand and inverse backgrounds redefine the colour tokens there
+  (`resources/css/blocks.css`). Brand and inverse backgrounds redefine the colour variables there
   (`--ink`, `--muted`, `--surface`, `--line`), so templates keep using `text-ink`, `text-muted`
-  and look right on any background. No raw classes or CSS typed in the admin.
+  and look right on any background — **only when the semantic colours are in `@theme inline`**
+  (rule `blade-views.md`), otherwise text inside keeps the page colours. A highlighted card inside
+  a block (a featured price plan) reuses the class: `class="block-bg-brand …"`. No raw classes or
+  CSS typed in the admin.
 - Interactivity inside a block is a Livewire component in its template (the lead form below);
   the block itself stays plain Blade.
 

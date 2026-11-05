@@ -104,9 +104,14 @@ deliberate on a phone and on a wide screen.
 - `resources/css/app.css` is the entry point and holds **only imports and `@source`**:
   `@import 'tailwindcss'`, `./theme.css`, `./base.css`, then component files.
 - `resources/css/theme.css` is the theme: every colour, font, radius and shadow as `@theme`
-  tokens; semantic colours (`page`, `surface`, `ink`, `muted`, `line`, `brand`) read CSS variables,
-  `.dark` redefines the variables. Templates use only these tokens — no raw palette
-  (`bg-gray-100`), no `#hex`, no arbitrary values (`p-[13px]`).
+  tokens; semantic colours (`page`, `surface`, `ink`, `muted`, `line`, `brand-soft`, `brand-ink`)
+  read CSS variables, `.dark` redefines the variables. Templates use only these tokens — no raw
+  palette (`bg-gray-100`), no `#hex`, no arbitrary values (`p-[13px]`).
+- **Semantic colours go into `@theme inline`** (`@theme inline { --color-muted: var(--muted); }`).
+  In a plain `@theme` the token is resolved once on `<html>`, so a section that redefines
+  `--muted` (a brand or dark block background, a highlighted card) keeps the page colours inside —
+  grey text and dark icons on a brand background. `inline` makes `text-muted` read `var(--muted)`
+  where it is used. Custom CSS reads the variable itself (`var(--line)`), not `var(--color-line)`.
 - `resources/css/base.css` — `@layer base` for elements (body, headings, focus ring, links in
   prose).
 - Styles of one component that Tailwind classes cannot express well (prose from the admin panel,
