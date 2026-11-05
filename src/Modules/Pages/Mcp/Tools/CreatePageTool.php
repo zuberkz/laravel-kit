@@ -6,6 +6,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Zuber\Kit\Modules\Pages\Actions\SavePageAction;
 use Zuber\Kit\Modules\Pages\Data\PageData;
 use Zuber\Kit\Modules\Pages\Enums\PageStatusEnum;
@@ -39,7 +40,7 @@ final class CreatePageTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $input = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -60,6 +61,6 @@ final class CreatePageTool extends PagesTool
         ]);
         $this->pages->assertPathAvailable($data->path);
 
-        return Response::json($this->page($this->savePage->handle($data)));
+        return Response::structured($this->page($this->savePage->handle($data)));
     }
 }

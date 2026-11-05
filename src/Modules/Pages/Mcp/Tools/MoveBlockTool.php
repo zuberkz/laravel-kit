@@ -5,6 +5,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Zuber\Kit\Modules\Pages\Actions\SavePageAction;
 use Zuber\Kit\Modules\Pages\Data\PageData;
 use Zuber\Kit\Modules\Pages\Services\PageBlocksService;
@@ -31,13 +32,13 @@ final class MoveBlockTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $request->validate(['page_id' => ['required', 'integer'], 'from' => ['required', 'integer'], 'to' => ['required', 'integer']]);
 
         $page = $this->pages->findOrFail($request->integer('page_id'));
         $blocks = $this->blocks->move($page->blocks ?? [], $request->integer('from'), $request->integer('to'));
 
-        return Response::json($this->page($this->savePage->handle(PageData::fromPage($page, ['blocks' => $blocks]), $page)));
+        return Response::structured($this->page($this->savePage->handle(PageData::fromPage($page, ['blocks' => $blocks]), $page)));
     }
 }

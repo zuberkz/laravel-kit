@@ -5,6 +5,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 use Illuminate\Support\Facades\URL;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tool;
 use Zuber\Kit\Core\Exceptions\DomainException;
 use Zuber\Kit\Modules\Pages\Models\Page;
@@ -15,7 +16,7 @@ use Zuber\Kit\Modules\Pages\Models\Page;
  */
 abstract class PagesTool extends Tool
 {
-    public function handle(Request $request): Response
+    public function handle(Request $request): Response|ResponseFactory
     {
         try {
             return $this->respond($request);
@@ -24,7 +25,7 @@ abstract class PagesTool extends Tool
         }
     }
 
-    abstract protected function respond(Request $request): Response;
+    abstract protected function respond(Request $request): Response|ResponseFactory;
 
     /**
      * Страница с блоками по номерам (index — для add-block, update-block, move-block, delete-block).

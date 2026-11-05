@@ -5,6 +5,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Zuber\Kit\Modules\Pages\Actions\SavePageAction;
 use Zuber\Kit\Modules\Pages\Data\PageData;
 use Zuber\Kit\Modules\Pages\Services\PageBlocksService;
@@ -31,7 +32,7 @@ final class UpdateBlockTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $input = $request->validate(['page_id' => ['required', 'integer'], 'index' => ['required', 'integer'], 'data' => ['required', 'array']]);
 
@@ -40,6 +41,6 @@ final class UpdateBlockTool extends PagesTool
         $changes = is_array($input['data']) ? $input['data'] : [];
         $blocks = $this->blocks->change($page->blocks ?? [], $request->integer('index'), $changes);
 
-        return Response::json($this->page($this->savePage->handle(PageData::fromPage($page, ['blocks' => $blocks]), $page)));
+        return Response::structured($this->page($this->savePage->handle(PageData::fromPage($page, ['blocks' => $blocks]), $page)));
     }
 }

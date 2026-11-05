@@ -4,6 +4,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Zuber\Kit\Modules\Pages\Models\Page;
 use Zuber\Kit\Modules\Pages\Services\PageService;
@@ -17,9 +18,9 @@ final class ListPagesTool extends PagesTool
 
     public function __construct(private readonly PageService $pages) {}
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
-        return Response::json([
+        return Response::structured([
             'pages' => $this->pages->list()->map(fn (Page $page): array => [
                 'id' => $page->id,
                 'title' => $page->title,

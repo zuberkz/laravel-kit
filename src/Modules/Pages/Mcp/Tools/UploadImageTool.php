@@ -5,6 +5,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 use Zuber\Kit\Modules\Pages\Actions\UploadBlockImageAction;
 use Zuber\Kit\Modules\Pages\Services\BlockImageService;
@@ -28,12 +29,12 @@ final class UploadImageTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $request->validate(['url' => ['required', 'string', 'url:https', 'max:2048']]);
 
         $path = $this->uploadImage->handle($request->string('url')->toString());
 
-        return Response::json(['path' => $path, 'url' => $this->images->url($path)]);
+        return Response::structured(['path' => $path, 'url' => $this->images->url($path)]);
     }
 }

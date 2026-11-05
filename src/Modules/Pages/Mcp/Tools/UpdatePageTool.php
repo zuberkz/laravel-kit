@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Zuber\Kit\Modules\Pages\Actions\SavePageAction;
 use Zuber\Kit\Modules\Pages\Data\PageData;
 use Zuber\Kit\Modules\Pages\Enums\PageStatusEnum;
@@ -38,7 +39,7 @@ final class UpdatePageTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $input = $request->validate([
             'page_id' => ['required', 'integer'],
@@ -59,6 +60,6 @@ final class UpdatePageTool extends PagesTool
             $this->pages->assertPathAvailable($data->path, $page);
         }
 
-        return Response::json($this->page($this->savePage->handle($data, $page)));
+        return Response::structured($this->page($this->savePage->handle($data, $page)));
     }
 }

@@ -5,6 +5,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Zuber\Kit\Modules\Pages\Services\PageService;
 
@@ -24,10 +25,10 @@ final class GetPageTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $request->validate(['page_id' => ['required', 'integer']]);
 
-        return Response::json($this->page($this->pages->findOrFail($request->integer('page_id'))));
+        return Response::structured($this->page($this->pages->findOrFail($request->integer('page_id'))));
     }
 }

@@ -5,6 +5,7 @@ namespace Zuber\Kit\Modules\Pages\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Zuber\Kit\Modules\Pages\Actions\SaveSharedBlockAction;
 use Zuber\Kit\Modules\Pages\Data\SharedBlockData;
 use Zuber\Kit\Modules\Pages\Models\SharedBlock;
@@ -32,7 +33,7 @@ final class UpdateSharedBlockTool extends PagesTool
         ];
     }
 
-    protected function respond(Request $request): Response
+    protected function respond(Request $request): ResponseFactory
     {
         $input = $request->validate([
             'shared_block_id' => ['required', 'integer'],
@@ -52,7 +53,7 @@ final class UpdateSharedBlockTool extends PagesTool
             position: $block->position,
         ), $block);
 
-        return Response::json($this->sharedBlock($saved));
+        return Response::structured($this->sharedBlock($saved));
     }
 
     /**
