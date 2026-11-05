@@ -26,7 +26,7 @@ paths:
   serve it before Laravel). Outside production `robots.txt` disallows everything and every
   response carries `X-Robots-Tag: noindex, nofollow`. The admin path is never listed in
   `robots.txt`. Extra disallowed paths — `config/kit.php` → `seo.robots_disallow`.
-- A section of the sitemap is a class implementing `Zuber\Kit\Seo\Contracts\SitemapSourceInterface`
+- A section of the sitemap is a class implementing `Zuber\Kit\Modules\Seo\Contracts\SitemapSourceInterface`
   in `app/Seo/Sitemap` (`urls()` yields `SitemapUrlData` of published records only), tagged
   `SitemapSourceInterface::TAG` in `AppServiceProvider`; a new section of the site gets its
   source in the same commit.

@@ -10,9 +10,9 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Zuber\Kit\Leads\LeadsPlugin;
-use Zuber\Kit\Pages\PagesPlugin;
-use Zuber\Kit\Users\UsersPlugin;
+use Zuber\Kit\Modules\Leads\LeadsPlugin;
+use Zuber\Kit\Modules\Pages\PagesPlugin;
+use Zuber\Kit\Modules\Users\UsersPlugin;
 
 final class PanelServiceProvider extends PanelProvider
 {

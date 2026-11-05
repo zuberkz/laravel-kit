@@ -7,9 +7,9 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Livewire\Component;
-use Zuber\Kit\Filament\Forms\Fields\PhoneInput;
-use Zuber\Kit\Spam\HoneypotField;
-use Zuber\Kit\Spam\UsesSpamProtection;
+use Zuber\Kit\Core\Filament\Forms\Fields\PhoneInput;
+use Zuber\Kit\Modules\Spam\HoneypotField;
+use Zuber\Kit\Modules\Spam\UsesSpamProtection;
 
 /**
  * Публичная форма сайта для тестов: телефон и защита от спама.

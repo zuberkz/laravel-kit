@@ -1,4 +1,4 @@
-{{-- Картинка блока (класс Zuber\Kit\Pages\View\Components\Image): src, alt, eager — первый экран --}}
+{{-- Картинка блока (класс Zuber\Kit\Modules\Pages\View\Components\Image): src, alt, eager — первый экран --}}
 <img
     src="{{ $src }}"
     alt="{{ $alt }}"

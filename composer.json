@@ -35,7 +35,7 @@
             "Zuber\\Kit\\": "src/"
         },
         "files": [
-            "src/helpers.php"
+            "src/Modules/Seo/helpers.php"
         ]
     },
     "autoload-dev": {

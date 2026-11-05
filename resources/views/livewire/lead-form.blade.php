@@ -1,4 +1,4 @@
-{{-- Форма заявки (Zuber\Kit\Leads\Livewire\LeadForm): поля Filament из формы админки, кнопка и «спасибо» — на токенах темы проекта --}}
+{{-- Форма заявки (Zuber\Kit\Modules\Leads\Livewire\LeadForm): поля Filament из формы админки, кнопка и «спасибо» — на токенах темы проекта --}}
 <div>
     @if ($sent)
         <div class="rounded-card bg-surface p-6 text-ink shadow-card" role="status">

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Spatie\LaravelData\Data;
 use Symfony\Component\Finder\Finder;
-use Zuber\Kit\Pages\Blocks\Block;
+use Zuber\Kit\Modules\Pages\Blocks\Block;
 
 /*
  * Архитектурные правила студии (CLAUDE.md, .claude/rules). Ослаблять их нельзя — исправляйте код.

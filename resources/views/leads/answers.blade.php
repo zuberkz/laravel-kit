@@ -1,4 +1,4 @@
-{{-- Ответы заявки в окне админки. Props: lead — Zuber\Kit\Leads\Models\Lead. --}}
+{{-- Ответы заявки в окне админки. Props: lead — Zuber\Kit\Modules\Leads\Models\Lead. --}}
 <dl class="grid gap-4">
     @foreach ($lead->answers as $answer)
         <div>

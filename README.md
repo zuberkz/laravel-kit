@@ -8,19 +8,25 @@
 | Правила для агентов (`studio.md` — общая часть CLAUDE.md, слои, исключения, тесты…) | `resources/rules` | `vendor:publish --tag=kit-rules` → `.claude/rules/kit/` |
 | Arch-тесты студии | `resources/stubs/tests/Arch/KitArchTest.php` | `--tag=kit-arch` → `tests/Arch/KitArchTest.php` |
 | Конфиг Pint | `resources/stubs/pint.json` | `--tag=kit-pint` → `pint.json` |
-| `DomainException` и его обработка, канал лога `domain` | `src`, `config` | автозагрузка и сервис-провайдер пакета |
-| Разделы «Пользователи» и «Роли» в Filament | `src/Users` | плагин `UsersPlugin` в панели проекта |
-| Синхронизация ролей и прав с `RoleEnum` | `src/Access` | команда `kit:sync-roles`, её запускает общий деплой |
-| Заголовки безопасности, `noindex` вне прода | `src/Http`, `src/Seo/Http` | глобальные middleware, сами |
-| `robots.txt`, `sitemap.xml`, `canonical_url()` | `src/Seo` | маршруты кита; разделы sitemap — классы проекта с тегом |
-| Защита форм от спама | `src/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
-| Поля `PhoneInput` (+7) и `SearchInput` | `src/Filament/Forms/Fields` | в схемах Filament |
-| Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
-| Заявки: формы из конструктора в админке, заявки, письмо команде | `src/Leads` | `kit.leads.enabled`, `<livewire:kit-lead-form :form>`, `LeadFormSelect`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
+| `DomainException` и его обработка, канал лога `domain` | `src/Core`, `config` | автозагрузка и сервис-провайдер пакета |
+| Разделы «Пользователи» и «Роли» в Filament | `src/Modules/Users` | плагин `UsersPlugin` в панели проекта |
+| Синхронизация ролей и прав с `RoleEnum` | `src/Modules/Access` | команда `kit:sync-roles`, её запускает общий деплой |
+| Заголовки безопасности, `noindex` вне прода | `src/Modules/Security`, `src/Modules/Seo` | глобальные middleware, сами |
+| `robots.txt`, `sitemap.xml`, `canonical_url()` | `src/Modules/Seo` | маршруты кита; разделы sitemap — классы проекта с тегом |
+| Защита форм от спама | `src/Modules/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
+| Поля `PhoneInput` (+7) и `SearchInput` | `src/Core/Filament/Forms/Fields` | в схемах Filament |
+| Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Modules/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
+| Заявки: формы из конструктора в админке, заявки, письмо команде | `src/Modules/Leads` | `kit.leads.enabled`, `<livewire:kit-lead-form :form>`, `LeadFormSelect`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в
 проекте. Своё у проекта — `CLAUDE.md`, правила вне `.claude/rules/kit/`, `tests/Arch/ProjectArchTest.php`.
+
+## Устройство
+
+`src/Core` — общее для всех модулей (исключения, телефон, поля Filament, доступ к панели),
+`src/Modules/<Модуль>` — модули со своими сервис-провайдерами; `KitServiceProvider` подключает
+модули, настройки `kit.*` и публикацию файлов.
 
 ## Подключение
 
@@ -41,10 +47,10 @@ composer require zuberkz/laravel-kit
 `bootstrap/app.php`:
 
 ```php
-->withExceptions(new \Zuber\Kit\Setup\ExceptionsSetup)
+->withExceptions(new \Zuber\Kit\Core\Setup\ExceptionsSetup)
 ```
 
-Отказы по бизнес-правилам наследуют `Zuber\Kit\Exceptions\DomainException`.
+Отказы по бизнес-правилам наследуют `Zuber\Kit\Core\Exceptions\DomainException`.
 
 ## Пользователи и роли (Filament)
 
@@ -59,7 +65,7 @@ composer require zuberkz/laravel-kit
   (`RoleEnum::permissions()`) и раскладываются сидером.
 
 Модель `User` проекта: трейт `Spatie\Permission\Traits\HasRoles` и интерфейс
-`Zuber\Kit\Users\Contracts\HasRolesInterface`. Панель:
+`Zuber\Kit\Modules\Users\Contracts\HasRolesInterface`. Панель:
 
 ```php
 ->plugin(

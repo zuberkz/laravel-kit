@@ -1,5 +1,5 @@
 {{--
-    Блоки страницы по порядку. Props: blocks — array<int, Zuber\Kit\Pages\Data\RenderedBlockData>.
+    Блоки страницы по порядку. Props: blocks — array<int, Zuber\Kit\Modules\Pages\Data\RenderedBlockData>.
     Обёртка задаёт фон и отступы блока (классы block-bg-*, block-pt-*, block-pb-* — в теме проекта),
     якорь — её id, на него ведут ссылки меню (#prices).
 --}}

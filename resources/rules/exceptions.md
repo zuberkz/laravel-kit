@@ -12,7 +12,7 @@ paths:
 
 ## Two kinds
 - **A refusal by a business rule** ("the order is already paid", "the time slot is taken") is a
-  normal outcome, not a failure. Its exception extends `Zuber\Kit\Exceptions\DomainException` (package
+  normal outcome, not a failure. Its exception extends `Zuber\Kit\Core\Exceptions\DomainException` (package
   `zuberkz/laravel-kit`), lives in
   `app/Exceptions/<Domain>/` and carries a message for the user, translated with `__()`. It is
   logged as statistics, not as an error: channel `domain` (`storage/logs/domain-*.log`, level
@@ -60,7 +60,7 @@ if ($order->status->isFinal()) {
   service is called.
 
 ## Handling — one place
-- `Zuber\Kit\Setup\ExceptionsSetup` from the kit (passed to `withExceptions()` in `bootstrap/app.php`) renders
+- `Zuber\Kit\Core\Setup\ExceptionsSetup` from the kit (passed to `withExceptions()` in `bootstrap/app.php`) renders
   every `DomainException`: a regular request goes back with the input and the message in the
   session key `error`; a JSON request gets 422 with `{"message": …}`. Reporting of `DomainException` goes to the `domain` channel and stops there
   (`->report(…)->stop()`), so it never reaches the error log. The layout shows `session('error')`.

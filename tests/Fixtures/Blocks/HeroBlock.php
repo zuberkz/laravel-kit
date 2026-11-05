@@ -4,8 +4,8 @@ namespace Zuber\Kit\Tests\Fixtures\Blocks;
 
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Zuber\Kit\Filament\Forms\Fields\BlockImageUpload;
-use Zuber\Kit\Pages\Blocks\Block;
+use Zuber\Kit\Modules\Pages\Blocks\Block;
+use Zuber\Kit\Modules\Pages\Filament\Forms\Fields\BlockImageUpload;
 
 final readonly class HeroBlock extends Block
 {

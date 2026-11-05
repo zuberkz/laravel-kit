@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Zuber\Kit\Seo\Http\Controllers\RobotsController;
-use Zuber\Kit\Seo\Http\Controllers\SitemapController;
+use Zuber\Kit\Modules\Seo\Http\Controllers\RobotsController;
+use Zuber\Kit\Modules\Seo\Http\Controllers\SitemapController;
 
 // Статичный public/robots.txt nginx отдаёт раньше Laravel — в проекте его быть не должно
 Route::get('robots.txt', RobotsController::class)->name('kit.robots');

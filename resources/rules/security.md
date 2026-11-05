@@ -10,8 +10,8 @@ paths:
 
 ## Public forms
 - **Every public form is protected** (contact, order, brief, comment, registration): the kit's
-  `Zuber\Kit\Spam\HoneypotField::make()` in the form schema and the trait
-  `Zuber\Kit\Spam\UsesSpamProtection` in the component (`if ($this->isSpam()) { …thank you…;
+  `Zuber\Kit\Modules\Spam\HoneypotField::make()` in the form schema and the trait
+  `Zuber\Kit\Modules\Spam\UsesSpamProtection` in the component (`if ($this->isSpam()) { …thank you…;
   return; }` before the action; minimum fill time — `kit.spam.min_seconds`), plus a rate limit — `throttle:5,1` on the route or `RateLimiter` in the action keyed
   by IP. A bot that fills the honeypot gets the normal "thank you" and nothing is stored, so it
   learns nothing.

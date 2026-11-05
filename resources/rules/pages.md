@@ -14,7 +14,7 @@ Pages of the site are built in the admin from blocks: the kit's `PagesPlugin` ("
 page `/` named `home` and a fallback: routes of the site always win over pages).
 
 ## A block is one class and one template
-- `app/Blocks/HeroBlock.php` — `final readonly class HeroBlock extends Zuber\Kit\Pages\Blocks\Block`:
+- `app/Blocks/HeroBlock.php` — `final readonly class HeroBlock extends Zuber\Kit\Modules\Pages\Blocks\Block`:
   constructor properties are the block's data, `label()` is its name in the admin, `fields()` the
   Filament fields **with the same names as the properties**, `example()` sample data, `icon()` a
   Heroicon. The type in the page data and the template name come from the class name

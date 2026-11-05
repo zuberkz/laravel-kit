@@ -4,7 +4,7 @@ namespace Zuber\Kit\Tests\Fixtures;
 
 use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasLabel;
-use Zuber\Kit\Access\Contracts\RoleEnumInterface;
+use Zuber\Kit\Modules\Access\Contracts\RoleEnumInterface;
 
 enum RoleEnum: string implements HasDescription, HasLabel, RoleEnumInterface
 {

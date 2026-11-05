@@ -4,8 +4,8 @@ namespace Zuber\Kit\Tests\Fixtures\Blocks;
 
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
-use Zuber\Kit\Pages\Blocks\Block;
-use Zuber\Kit\Pages\Enums\BlockBackgroundEnum;
+use Zuber\Kit\Modules\Pages\Blocks\Block;
+use Zuber\Kit\Modules\Pages\Enums\BlockBackgroundEnum;
 
 final readonly class FaqBlock extends Block
 {
