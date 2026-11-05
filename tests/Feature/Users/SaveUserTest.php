@@ -122,3 +122,12 @@ it('changes the password when a new one is entered', function (): void {
 
     expect(Hash::check('Nw4r-Pq8s-Ty3v', $manager->refresh()->password))->toBeTrue();
 });
+
+it('explains the chosen roles under the roles field', function (): void {
+    $this->actingAs($this->userWithRole(RoleEnum::ADMIN));
+
+    Livewire::test(CreateUser::class)
+        ->assertDontSee('Без доступа к пользователям')
+        ->fillForm(['roles' => [RoleEnum::MANAGER->value]])
+        ->assertSee('Без доступа к пользователям');
+});

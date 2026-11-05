@@ -3,7 +3,7 @@
 namespace Zuber\Kit\Users\Filament\Resources\Users\Schemas;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 use Zuber\Kit\Support\PasswordSupport;
@@ -20,7 +21,8 @@ use Zuber\Kit\Users\Filament\Resources\Users\UserResource;
 use Zuber\Kit\Users\Services\UserAccessService;
 
 /**
- * Форма пользователя: слева профиль и пароль, справа роли и сведения.
+ * Форма пользователя: профиль, пароль и роли — одной колонкой, чтобы кнопки сохранения шли сразу
+ * за ними; справа узкий блок «Сведения», только при редактировании.
  */
 final class UserForm
 {
@@ -34,8 +36,11 @@ final class UserForm
         return $schema
             ->columns(3)
             ->components([
-                Group::make([self::profile(), self::password()])->columnSpan(['lg' => 2]),
-                Group::make([self::roles(), self::details()])->columnSpan(['lg' => 1]),
+                Group::make([self::profile(), self::password(), self::roles()])
+                    ->columnSpan(fn (string $operation): array|string => $operation === 'edit' ? ['lg' => 2] : 'full'),
+                Group::make([self::details()])
+                    ->columnSpan(['lg' => 1])
+                    ->visible(fn (string $operation): bool => $operation === 'edit'),
             ]);
     }
 
@@ -101,26 +106,48 @@ final class UserForm
             });
     }
 
+    /**
+     * Ролей в проекте бывает много — выпадающий список с поиском; описания выбранных ролей — под полем.
+     */
     private static function roles(): Section
     {
-        $settings = app(UsersSettingsData::class);
-
         return Section::make(__('Роли'))
             ->icon(Heroicon::OutlinedShieldCheck)
             ->description(__('Роль определяет, что пользователь может делать в админке.'))
             ->schema([
-                CheckboxList::make('roles')
+                Select::make('roles')
+                    ->label(__('Роли'))
                     ->hiddenLabel()
+                    ->multiple()
+                    ->searchable()
+                    ->native(false)
+                    ->placeholder(__('Выберите роли'))
                     ->options(fn (): array => app(UserAccessService::class)->assignableRoles(UserResource::currentActor()))
-                    ->descriptions($settings->roleDescriptions()),
+                    ->live()
+                    ->helperText(fn (?array $state): ?HtmlString => self::roleDescriptions($state ?? [])),
             ]);
+    }
+
+    /**
+     * «Роль — описание» по строке на каждую выбранную роль, у которой есть описание.
+     *
+     * @param array<mixed> $roles
+     */
+    private static function roleDescriptions(array $roles): ?HtmlString
+    {
+        $settings = app(UsersSettingsData::class);
+
+        $lines = collect($roles)
+            ->filter(fn (mixed $role): bool => is_string($role) && $settings->roleDescription($role) !== null)
+            ->map(fn (string $role): string => '<b>' . e($settings->roleLabel($role)) . '</b> — ' . e($settings->roleDescription($role)));
+
+        return $lines->isEmpty() ? null : new HtmlString($lines->implode('<br>'));
     }
 
     private static function details(): Section
     {
         return Section::make(__('Сведения'))
             ->icon(Heroicon::OutlinedInformationCircle)
-            ->visible(fn (string $operation): bool => $operation === 'edit')
             ->schema([
                 TextEntry::make('created_at')
                     ->label(__('Создан'))
