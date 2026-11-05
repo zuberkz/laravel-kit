@@ -15,4 +15,9 @@ return [
         'referrer_policy' => 'strict-origin-when-cross-origin',
         'permissions_policy' => 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
     ],
+
+    // Публичные формы: заполненная быстрее этого форма — бот
+    'spam' => [
+        'min_seconds' => 3,
+    ],
 ];
