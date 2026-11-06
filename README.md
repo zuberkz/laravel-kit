@@ -97,6 +97,19 @@ on:
     push:
         branches:
             - main
+        # Пуш только с документацией, правилами ИИ-агентов и локальным окружением деплой не запускает
+        paths-ignore:
+            - '**.md'
+            - '.ai/**'
+            - '.agents/**'
+            - '.claude/**'
+            - '.mcp.json'
+            - 'boost.json'
+            - '.docker/**'
+            - 'docker-compose.yml'
+            - 'bin/**'
+            - '.editorconfig'
+            - '.github/dependabot.yml'
     workflow_dispatch:
 
 # Параллельные деплои затирают друг друга: ждём предыдущий, новый не отменяем.
@@ -129,6 +142,9 @@ jobs:
             SSH_PORT: ${{ secrets.SSH_PORT }}
             DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
 ```
+
+Зависимости кэшируются: `vendor` — по `composer.lock` и версии PHP, `node_modules` — по
+`package-lock.json` и версии Node. Пока lock-файлы не менялись, пакеты не скачиваются заново.
 
 Проекты берут workflow с `@main`, поэтому правка деплоя доходит до всех сразу. Значит, изменения
 в `deploy.yml` только совместимые; новый обязательный вход или другое поведение — новый файл
