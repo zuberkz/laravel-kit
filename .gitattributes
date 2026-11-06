@@ -1,4 +1,7 @@
-/.github export-ignore
+# .github/actions не исключаем: GitHub скачивает composite actions архивом репозитория,
+# а export-ignore убирает файлы из архива — деплой проектов не нашёл бы action.yml
+/.github/workflows export-ignore
+/.github/dependabot.yml export-ignore
 /tests export-ignore
 /phpunit.xml export-ignore
 /phpstan.neon export-ignore
