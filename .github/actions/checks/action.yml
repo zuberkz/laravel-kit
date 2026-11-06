@@ -34,6 +34,12 @@ runs:
                     [ -f .env ] || cp .env.example .env 2>/dev/null || touch .env
                     php artisan key:generate --force --no-interaction
                     if [ -n "$TEST_SETUP" ]; then bash -c "$TEST_SETUP"; fi
-                    php artisan test
+                    # sqlite в памяти — тесты параллельно, по процессу на ядро (~на треть быстрее).
+                    # mariadb и pgsql — подряд: параллельный режим создаёт базу на процесс, а у тестового пользователя нет прав
+                    if [ "$DATABASE" = "sqlite" ] && [ -f vendor/bin/paratest ]; then
+                        php artisan test --parallel
+                    else
+                        php artisan test
+                    fi
                     rm -f .env
                 fi
