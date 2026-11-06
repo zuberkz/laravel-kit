@@ -14,7 +14,6 @@ on:
             - 'routes/**'
             - 'tests/**'
             - 'composer.json'
-            - 'composer.lock'
             - 'phpstan.neon'
             - 'phpunit.xml'
             - '.github/workflows/checks.yml'
@@ -27,7 +26,6 @@ on:
             - 'routes/**'
             - 'tests/**'
             - 'composer.json'
-            - 'composer.lock'
             - 'phpstan.neon'
             - 'phpunit.xml'
             - '.github/workflows/checks.yml'
@@ -45,11 +43,12 @@ jobs:
                     php-version: '8.5'
                     tools: composer
 
-            # Кэш vendor по composer.lock: lock не менялся — пакеты не скачиваются заново
+            # Кэш vendor по composer.json: lock у пакета не коммитится, composer install каждый раз сверяет
+            # версии с ограничениями, а кэш избавляет от скачивания всех пакетов с нуля
             -   uses: actions/cache@v4
                 with:
                     path: vendor
-                    key: vendor-${{ runner.os }}-php8.5-${{ hashFiles('composer.lock') }}
+                    key: vendor-${{ runner.os }}-php8.5-${{ hashFiles('composer.json') }}
 
             -   run: composer install --no-interaction --prefer-dist --no-progress
 
