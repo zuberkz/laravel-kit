@@ -20,6 +20,13 @@ it('sends HSTS only in production over https', function (): void {
     $this->app->detectEnvironment(fn (): string => 'production');
 
     $this->get('http://localhost/test/page')->assertHeaderMissing('Strict-Transport-Security');
+    $this->get('https://localhost/test/page')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
+});
+
+it('covers subdomains with HSTS only when the site asks for it', function (): void {
+    $this->app->detectEnvironment(fn (): string => 'production');
+    config(['kit.security_headers.hsts_include_subdomains' => true]);
+
     $this->get('https://localhost/test/page')->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 });
 

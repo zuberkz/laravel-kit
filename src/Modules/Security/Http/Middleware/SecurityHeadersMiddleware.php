@@ -51,7 +51,8 @@ final readonly class SecurityHeadersMiddleware
         ];
 
         if ($request->isSecure() && $this->app->isProduction()) {
-            $headers['Strict-Transport-Security'] = sprintf('max-age=%s; includeSubDomains', $this->setting('hsts_max_age'));
+            $headers['Strict-Transport-Security'] = 'max-age=' . $this->setting('hsts_max_age')
+                . ($this->config->get('kit.security_headers.hsts_include_subdomains') === true ? '; includeSubDomains' : '');
         }
 
         return $headers;

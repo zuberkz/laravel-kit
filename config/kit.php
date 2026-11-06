@@ -15,6 +15,9 @@ return [
     'security_headers' => [
         'enabled' => true,
         'hsts_max_age' => 31536000,
+        // includeSubDomains — https для всех поддоменов домена сайта. Включать, только когда у
+        // каждого поддомена (почта, старые сервисы, тестовые копии) есть https: браузер не откроет их по http
+        'hsts_include_subdomains' => false,
         'frame_options' => 'SAMEORIGIN',
         'referrer_policy' => 'strict-origin-when-cross-origin',
         'permissions_policy' => 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
