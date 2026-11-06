@@ -10,7 +10,7 @@
 | Конфиг Pint | `resources/stubs/pint.json` | `--tag=kit-pint` → `pint.json` |
 | `DomainException` и его обработка, канал лога `domain` | `src/Core`, `config` | автозагрузка и сервис-провайдер пакета |
 | Разделы «Пользователи» и «Роли» в Filament | `src/Modules/Users` | плагин `UsersPlugin` в панели проекта |
-| Первый администратор на сервере | `src/Modules/Users` | `php artisan kit:make-user почта --role=admin` — пароль печатается один раз |
+| Первый администратор на сервере | `src/Modules/Users` | `php artisan kit:make-user почта --role=admin` — пароль печатается один раз; `--ask-password` — ввести свой (скрыто) |
 | Права из `PermissionEnum`, роли по умолчанию из `RoleEnum` | `src/Modules/Access` | команда `kit:sync-roles`, её запускает общий деплой |
 | Заголовки безопасности, `noindex` вне прода | `src/Modules/Security`, `src/Modules/Seo` | глобальные middleware, сами |
 | `robots.txt`, `sitemap.xml`, `canonical_url()` | `src/Modules/Seo` | маршруты кита; разделы sitemap — классы проекта с тегом |

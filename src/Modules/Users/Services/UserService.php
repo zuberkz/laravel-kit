@@ -69,7 +69,7 @@ final readonly class UserService
         $user = $this->users->findByEmail($data->email);
 
         if ($user !== null) {
-            return new MadeUserData($data->email, created: false, password: $resetPassword ? $this->resetPassword($user) : null);
+            return $this->changePassword($user, $data, $resetPassword);
         }
 
         if ($data->roles === []) {
@@ -82,10 +82,28 @@ final readonly class UserService
             throw UnknownRoleException::roles($missing);
         }
 
-        $password = PasswordSupport::generate();
+        $password = $data->password ?? PasswordSupport::generate();
         $this->users->create(['name' => $data->name, 'email' => $data->email, 'password' => $this->hasher->make($password)], $data->roles);
 
-        return new MadeUserData($data->email, created: true, password: $password);
+        return new MadeUserData($data->email, created: true, password: $data->password === null ? $password : null, passwordChanged: true);
+    }
+
+    /**
+     * Существующему пользователю: введённый пароль, новый сгенерированный или ничего.
+     */
+    private function changePassword(Model&HasRolesInterface $user, UserData $data, bool $resetPassword): MadeUserData
+    {
+        if ($data->password !== null) {
+            $this->users->updatePassword($user, $this->hasher->make($data->password));
+
+            return new MadeUserData($data->email, created: false, password: null, passwordChanged: true);
+        }
+
+        if (! $resetPassword) {
+            return new MadeUserData($data->email, created: false, password: null);
+        }
+
+        return new MadeUserData($data->email, created: false, password: $this->resetPassword($user), passwordChanged: true);
     }
 
     private function resetPassword(Model&HasRolesInterface $user): string

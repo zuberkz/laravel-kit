@@ -26,7 +26,8 @@ paths:
   own resources.
 - The first admin on a server (seeders never run there): `php artisan kit:make-user
   owner@site.kz --role=admin` — the generated password is printed once; a second run for the same
-  email changes nothing, `--reset-password` issues a new one. Never a seeder with real accounts.
+  email changes nothing, `--reset-password` issues a new one, `--ask-password` lets the person type
+  their own (hidden, confirmed, never printed). Never a seeder with real accounts.
 - Policies check **permissions** (`hasPermissionTo`), never role names — roles are renamed and
   created in the admin. A role inside one record
   (owner, participant, assignee) is data of that record, not a spatie role.
