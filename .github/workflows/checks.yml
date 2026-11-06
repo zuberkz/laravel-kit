@@ -1,10 +1,36 @@
 name: "✅ Checks"
 
+# Только когда меняется код пакета: правки README, деплоя (.github/actions, workflows/deploy.yml)
+# и прочих файлов не тратят минуты Actions
 on:
     push:
         branches:
             - main
+        paths:
+            - 'src/**'
+            - 'config/**'
+            - 'database/**'
+            - 'resources/**'
+            - 'routes/**'
+            - 'tests/**'
+            - 'composer.json'
+            - 'composer.lock'
+            - 'phpstan.neon'
+            - 'phpunit.xml'
+            - '.github/workflows/checks.yml'
     pull_request:
+        paths:
+            - 'src/**'
+            - 'config/**'
+            - 'database/**'
+            - 'resources/**'
+            - 'routes/**'
+            - 'tests/**'
+            - 'composer.json'
+            - 'composer.lock'
+            - 'phpstan.neon'
+            - 'phpunit.xml'
+            - '.github/workflows/checks.yml'
 
 jobs:
     checks:
@@ -18,6 +44,12 @@ jobs:
                 with:
                     php-version: '8.5'
                     tools: composer
+
+            # Кэш vendor по composer.lock: lock не менялся — пакеты не скачиваются заново
+            -   uses: actions/cache@v4
+                with:
+                    path: vendor
+                    key: vendor-${{ runner.os }}-php8.5-${{ hashFiles('composer.lock') }}
 
             -   run: composer install --no-interaction --prefer-dist --no-progress
 
