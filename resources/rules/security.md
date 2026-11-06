@@ -23,11 +23,11 @@ paths:
 - Security headers come from the kit on every response (a global middleware):
   `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
   `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` that disables camera,
-  microphone, geolocation, payment; `Strict-Transport-Security` in production over https, without
-  `includeSubDomains` unless `security_headers.hsts_include_subdomains` is on — turn it on only when
-  every subdomain of the site's domain (mail, old services, test copies) has https. A site
-  that needs one of them (a map with geolocation) changes `security_headers` in `config/kit.php`;
-  never a second middleware with the same headers. A `Content-Security-Policy` once the list of third-party scripts (analytics,
+  microphone, geolocation, payment. A site that needs one of them (a map with geolocation) changes
+  `security_headers` in `config/kit.php`; never a second middleware with the same headers.
+- `Strict-Transport-Security` is the hosting's job, not the code's: the HSTS setting of the site in
+  ISPmanager (on for every site, `isp-create-site` turns it on). The application never sends it —
+  a second header from the code only duplicates the panel's. A `Content-Security-Policy` once the list of third-party scripts (analytics,
   maps, widgets) is known — start in `Report-Only`.
 - HTTPS only: `URL::forceHttps()` in production, secure session cookies (`SESSION_SECURE_COOKIE`).
 

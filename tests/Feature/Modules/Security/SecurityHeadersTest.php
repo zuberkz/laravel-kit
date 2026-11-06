@@ -16,18 +16,12 @@ it('adds the security headers to every response', function (): void {
         ->assertHeaderMissing('Strict-Transport-Security');
 });
 
-it('sends HSTS only in production over https', function (): void {
+it('leaves HSTS to the hosting even in production over https', function (): void {
     $this->app->detectEnvironment(fn (): string => 'production');
 
-    $this->get('http://localhost/test/page')->assertHeaderMissing('Strict-Transport-Security');
-    $this->get('https://localhost/test/page')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
-});
-
-it('covers subdomains with HSTS only when the site asks for it', function (): void {
-    $this->app->detectEnvironment(fn (): string => 'production');
-    config(['kit.security_headers.hsts_include_subdomains' => true]);
-
-    $this->get('https://localhost/test/page')->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    $this->get('https://localhost/test/page')
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
+        ->assertHeaderMissing('Strict-Transport-Security');
 });
 
 it('keeps a header the response set itself', function (): void {

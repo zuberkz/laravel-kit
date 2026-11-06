@@ -4,21 +4,17 @@ namespace Zuber\Kit\Modules\Security\Http\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Config\Repository;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Заголовки безопасности на каждый ответ (глобальный middleware кита, правило security.md).
- * Заголовок, который ответ уже задал сам, не перезаписывается. HSTS — только на проде по https:
- * иначе браузер запомнит https для локального или тестового домена.
+ * Заголовок, который ответ уже задал сам, не перезаписывается. HSTS здесь нет: его отдаёт хостинг
+ * (галочка HSTS сайта в ISPmanager, она включена у каждого сайта), второй такой же заголовок не нужен.
  */
 final readonly class SecurityHeadersMiddleware
 {
-    public function __construct(
-        private Repository $config,
-        private Application $app,
-    ) {}
+    public function __construct(private Repository $config) {}
 
     /**
      * @param Closure(Request): Response $next
@@ -31,7 +27,7 @@ final readonly class SecurityHeadersMiddleware
             return $response;
         }
 
-        collect($this->headers($request))
+        collect($this->headers())
             ->filter(fn (string $value, string $name): bool => $value !== '' && ! $response->headers->has($name))
             ->each(fn (string $value, string $name) => $response->headers->set($name, $value));
 
@@ -41,21 +37,14 @@ final readonly class SecurityHeadersMiddleware
     /**
      * @return array<string, string>
      */
-    private function headers(Request $request): array
+    private function headers(): array
     {
-        $headers = [
+        return [
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => $this->setting('frame_options'),
             'Referrer-Policy' => $this->setting('referrer_policy'),
             'Permissions-Policy' => $this->setting('permissions_policy'),
         ];
-
-        if ($request->isSecure() && $this->app->isProduction()) {
-            $headers['Strict-Transport-Security'] = 'max-age=' . $this->setting('hsts_max_age')
-                . ($this->config->get('kit.security_headers.hsts_include_subdomains') === true ? '; includeSubDomains' : '');
-        }
-
-        return $headers;
     }
 
     private function setting(string $key): string
