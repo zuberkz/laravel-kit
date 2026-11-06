@@ -4,6 +4,7 @@ namespace Zuber\Kit\Modules\Seo\Services;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
+use Zuber\Kit\Modules\Seo\Support\CanonicalUrlSupport;
 
 /**
  * robots.txt: вне прода индексация закрыта целиком. Путь админки сюда не пишется — по robots.txt
@@ -28,7 +29,14 @@ final readonly class RobotsService
 
         return collect(['User-agent: *'])
             ->merge($disallow->isEmpty() ? ['Disallow:'] : $disallow)
-            ->push('', 'Sitemap: ' . canonical_url('/sitemap.xml'))
+            ->push('', 'Sitemap: ' . CanonicalUrlSupport::make($this->appUrl(), '/sitemap.xml'))
             ->implode("\n") . "\n";
+    }
+
+    private function appUrl(): string
+    {
+        $url = $this->config->get('app.url');
+
+        return is_string($url) ? $url : '';
     }
 }

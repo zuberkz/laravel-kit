@@ -36,10 +36,7 @@
     "autoload": {
         "psr-4": {
             "Zuber\\Kit\\": "src/"
-        },
-        "files": [
-            "src/Modules/Seo/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {

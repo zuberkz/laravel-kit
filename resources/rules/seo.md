@@ -17,7 +17,7 @@ paths:
   `<meta name="description">` (140–160 characters, the benefit and a call to action), one `<h1>`,
   `og:title`, `og:description`, `og:image` (1200×630), `og:url`.
 - Canonical and every absolute URL for search engines (canonical, `og:url`, sitemap, JSON-LD) are
-  on the main domain from `APP_URL` (the kit's `canonical_url()`), even when the site is opened on `www`
+  on the main domain from `APP_URL` (the kit's `CanonicalUrlSupport::current()`), even when the site is opened on `www`
   or a technical domain. Paginated pages get their own canonical with `?page=N`.
 - Structured data (JSON-LD) through a `SchemaService` (spatie/schema-org): `Organization` /
   `LocalBusiness` on every page, `BreadcrumbList`, and the type of the page (`Product`, `Service`,

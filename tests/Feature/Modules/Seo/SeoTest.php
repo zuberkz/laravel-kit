@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use Zuber\Kit\Modules\Seo\Contracts\SitemapSourceInterface;
 use Zuber\Kit\Modules\Seo\Data\SitemapUrlData;
+use Zuber\Kit\Modules\Seo\Support\CanonicalUrlSupport;
 
 beforeEach(function (): void {
     config(['app.url' => 'https://example.kz']);
@@ -48,13 +49,17 @@ it('lists every url of the registered sources once, on APP_URL', function (): vo
 });
 
 it('builds the canonical url on APP_URL and keeps only the page number', function (string $url, string $canonical): void {
-    expect(canonical_url($url))->toBe($canonical);
+    expect(CanonicalUrlSupport::current($url))->toBe($canonical);
 })->with([
     'other host and query' => ['http://www.example.kz/blog?utm_source=x', 'https://example.kz/blog'],
     'second page' => ['https://example.kz/blog?page=2&sort=new', 'https://example.kz/blog?page=2'],
     'first page' => ['https://example.kz/blog?page=1', 'https://example.kz/blog'],
     'home' => ['https://example.kz/', 'https://example.kz'],
 ]);
+
+it('leaves the name canonical_url to the site: the kit defines no global functions', function (): void {
+    expect(function_exists('canonical_url'))->toBeFalse();
+});
 
 it('asks search engines not to index anything outside production', function (): void {
     $this->get('/robots.txt')->assertHeader('X-Robots-Tag', 'noindex, nofollow');

@@ -51,7 +51,7 @@ page `/` named `home` and a fallback: routes of the site always win over pages).
 
 ## The layout
 `kit.pages.layout` (default `layouts.app`) gets `title`, `description`, `ogImage`, `noindex`
-and the slots `header`, `footer`; it renders the meta tags, `canonical_url()`, `@filamentStyles`,
+and the slots `header`, `footer`; it renders the meta tags, `CanonicalUrlSupport::current()`, `@filamentStyles`,
 `@filamentScripts`.
 
 ## Leads
