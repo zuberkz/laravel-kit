@@ -1,0 +1,70 @@
+# Завершение выкладки на сервере: миграции и роли, optimize, перезапуск очереди, сброс кэша страниц.
+# Часть общего деплоя (.github/workflows/deploy.yml). SSH-данные — входами: секреты composite action недоступны.
+name: Finish
+description: artisan на сервере после выкладки
+
+inputs:
+    ssh-host:
+        required: true
+    ssh-user:
+        required: true
+    ssh-port:
+        required: true
+    deploy-key:
+        required: true
+    app-dir:
+        description: Каталог сайта на сервере
+        required: true
+    php:
+        description: Путь к php нужной версии на сервере
+        required: true
+    auto-migrate:
+        description: Выполнять migrate --force
+        default: 'true'
+
+runs:
+    using: composite
+    steps:
+        -   name: Finish on server
+            uses: appleboy/ssh-action@v1.2.5
+            env:
+                APP_DIR: ${{ inputs.app-dir }}
+                PHP: ${{ inputs.php }}
+                AUTO_MIGRATE: ${{ inputs.auto-migrate }}
+            with:
+                host: ${{ inputs.ssh-host }}
+                username: ${{ inputs.ssh-user }}
+                key: ${{ inputs.deploy-key }}
+                port: ${{ inputs.ssh-port }}
+                command_timeout: 10m
+                envs: APP_DIR,PHP,AUTO_MIGRATE
+                script: |
+                    set -euo pipefail
+
+                    cd "$APP_DIR"
+
+                    if [ ! -f .env ]; then
+                        echo "::error::$APP_DIR/.env is missing: create it with isp-write-env and run the deploy again"
+                        exit 1
+                    fi
+
+                    if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
+                        "$PHP" artisan migrate --force
+                        # Роли и права — по RoleEnum проекта; без spatie/laravel-permission команды нет
+                        if "$PHP" artisan list --raw | grep -q '^kit:sync-roles'; then
+                            "$PHP" artisan kit:sync-roles --no-interaction
+                        fi
+                    fi
+
+                    [ -e public/storage ] || "$PHP" artisan storage:link
+                    "$PHP" artisan optimize
+
+                    # Воркеры очереди держат в памяти старый код: перезапуск после выкладки
+                    "$PHP" artisan queue:restart
+
+                    # Кэш готовых страниц (spatie/laravel-responsecache) — иначе после деплоя отдаются старые страницы
+                    if "$PHP" artisan list --raw | grep -q '^responsecache:clear'; then
+                        "$PHP" artisan responsecache:clear
+                    fi
+
+                    echo "Deploy complete"

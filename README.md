@@ -143,6 +143,10 @@ jobs:
             DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
 ```
 
+Сам общий workflow короткий, шаги — composite actions в `.github/actions`: `build` (PHP, composer и npm,
+сборка фронта), `checks` (audit, Pint, Larastan, тесты), `upload` (composer без dev и rsync), `finish`
+(artisan на сервере). Всё идёт одним job: каждый job заново поднимает машину и округляет минуты.
+
 Зависимости кэшируются: `vendor` — по `composer.lock` и версии PHP, `node_modules` — по
 `package-lock.json` и версии Node. Пока lock-файлы не менялись, пакеты не скачиваются заново.
 

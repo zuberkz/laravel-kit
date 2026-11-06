@@ -1,0 +1,57 @@
+# Выкладка на сервер: composer без dev-пакетов и rsync каталога проекта.
+# Часть общего деплоя (.github/workflows/deploy.yml). SSH-данные — входами: секреты composite action недоступны.
+name: Upload
+description: composer --no-dev и rsync на сервер
+
+inputs:
+    ssh-host:
+        required: true
+    ssh-user:
+        required: true
+    ssh-port:
+        required: true
+    deploy-key:
+        required: true
+    app-dir:
+        description: Каталог сайта на сервере
+        required: true
+    rsync-exclude:
+        description: Каталоги, которые живут только на сервере, через пробел — rsync их не удаляет
+        default: ''
+
+runs:
+    using: composite
+    steps:
+        # На сервер — без dev-пакетов: там не нужны ни composer, ни доступ к Packagist
+        -   name: Install PHP dependencies
+            if: hashFiles('composer.json') != ''
+            shell: bash
+            run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+        -   name: Upload to server
+            shell: bash
+            env:
+                SSH_HOST: ${{ inputs.ssh-host }}
+                SSH_USER: ${{ inputs.ssh-user }}
+                SSH_PORT: ${{ inputs.ssh-port }}
+                DEPLOY_KEY: ${{ inputs.deploy-key }}
+                APP_DIR: ${{ inputs.app-dir }}
+                RSYNC_EXCLUDE: ${{ inputs.rsync-exclude }}
+            run: |
+                install -m 600 /dev/null ~/deploy_key
+                printf '%s\n' "$DEPLOY_KEY" > ~/deploy_key
+                SSH="ssh -p $SSH_PORT -i $HOME/deploy_key -o StrictHostKeyChecking=accept-new"
+
+                # Исключённое rsync не удаляет на сервере: .env, данные storage, ссылку public/storage,
+                # проверки Let's Encrypt и каталоги из RSYNC_EXCLUDE. bootstrap/cache едет вместе с vendor:
+                # манифест пакетов собран composer install выше, старые кэши удаляются, optimize соберёт заново
+                excludes=(--exclude=/.git/ --exclude=/.github/ --exclude=/node_modules/ --exclude=/.env --exclude=/storage/
+                    --exclude=/public/storage --exclude=/public/.well-known/)
+                for path in $RSYNC_EXCLUDE; do excludes+=("--exclude=/${path#/}"); done
+
+                rsync -az --delete "${excludes[@]}" -e "$SSH" ./ "$SSH_USER@$SSH_HOST:$APP_DIR/"
+
+                # Структура storage нужна на новом сервере, но существующие файлы не трогаем
+                if [ -d storage ]; then rsync -az --ignore-existing -e "$SSH" storage/ "$SSH_USER@$SSH_HOST:$APP_DIR/storage/"; fi
+
+                rm -f ~/deploy_key

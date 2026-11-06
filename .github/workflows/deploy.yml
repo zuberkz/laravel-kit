@@ -1,7 +1,10 @@
-# Общий деплой Laravel-проекта на сервер ISPmanager: проверки → сборка → rsync → artisan на сервере.
+# Общий деплой Laravel-проекта на сервер ISPmanager: сборка → проверки → rsync → artisan на сервере.
 # Проект вызывает его из своего .github/workflows/deploy.yml (пример — README пакета) и передаёт
 # переменные и секреты репозитория. Несовместимое изменение входов — новый файл deploy-v2.yml,
 # этот остаётся как есть: его используют все проекты с ref @main.
+# Шаги — composite actions в .github/actions (build, checks, upload, finish), один job: каждый job заново
+# поднимает машину и округляет минуты. Actions подключаются по полному адресу @main — относительный путь
+# внутри reusable workflow указывал бы на репозиторий проекта.
 name: "🚀 Deploy (reusable)"
 
 on:
@@ -57,15 +60,6 @@ on:
             DEPLOY_KEY:
                 required: true
 
-env:
-    APP_DIR: ${{ inputs.app-dir }}
-    PHP: ${{ inputs.php }}
-    DEPLOY_BRANCH: ${{ inputs.deploy-branch || github.ref_name }}
-    AUTO_MIGRATE: ${{ inputs.auto-migrate }}
-    RSYNC_EXCLUDE: ${{ inputs.rsync-exclude }}
-    DATABASE: ${{ inputs.database }}
-    TEST_SETUP: ${{ inputs.test-setup }}
-
 jobs:
     deploy:
         runs-on: ubuntu-latest
@@ -105,172 +99,35 @@ jobs:
         steps:
             -   uses: actions/checkout@v5
 
-            -   name: Set up PHP
-                if: hashFiles('composer.json') != ''
-                uses: shivammathur/setup-php@v2
+            -   uses: zuberkz/laravel-kit/.github/actions/build@main
                 with:
                     php-version: ${{ inputs.php-version }}
-                    extensions: ${{ inputs.database == 'pgsql' && format('pdo_pgsql, {0}', inputs.php-extensions) || inputs.php-extensions }}
-                    tools: composer
+                    php-extensions: ${{ inputs.php-extensions }}
+                    database: ${{ inputs.database }}
+                    deploy-branch: ${{ inputs.deploy-branch || github.ref_name }}
 
-            # Без composer.lock версии зависимостей случайны: фиксируем их один раз и коммитим lock
-            -   name: Commit composer.lock
-                if: hashFiles('composer.json') != '' && hashFiles('composer.lock') == ''
-                run: |
-                    composer update --no-install --no-scripts --no-interaction --prefer-dist
-                    git config user.name "github-actions[bot]"
-                    git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                    git add composer.lock
-                    git commit -m "chore(deps): зафиксировать composer.lock"
-                    git push origin "HEAD:${DEPLOY_BRANCH}"
-
-            # Кэш vendor по composer.lock и версии PHP: lock не менялся — пакеты не скачиваются и не распаковываются,
-            # composer install только сверяет vendor с lock и запускает скрипты пакетов
-            -   name: Restore PHP dependencies
-                id: vendor-cache
-                if: hashFiles('composer.lock') != ''
-                uses: actions/cache/restore@v4
+            -   uses: zuberkz/laravel-kit/.github/actions/checks@main
+                if: inputs.deploy-env != 'staging'
                 with:
-                    path: vendor
-                    key: vendor-${{ runner.os }}-php${{ inputs.php-version }}-${{ hashFiles('composer.lock') }}
+                    database: ${{ inputs.database }}
+                    test-setup: ${{ inputs.test-setup }}
 
-            # Зависимости до сборки стилей: стили сайта импортируют CSS пакетов из vendor (поля Filament)
-            -   name: Install dependencies
-                if: hashFiles('composer.json') != ''
-                run: composer install --no-interaction --prefer-dist --no-progress
-
-            # Сохраняем сразу после установки — с dev-пакетами для проверок, до composer install --no-dev в конце
-            -   name: Save PHP dependencies
-                if: hashFiles('composer.lock') != '' && steps.vendor-cache.outputs.cache-hit != 'true'
-                uses: actions/cache/save@v4
+            -   uses: zuberkz/laravel-kit/.github/actions/upload@main
                 with:
-                    path: vendor
-                    key: vendor-${{ runner.os }}-php${{ inputs.php-version }}-${{ hashFiles('composer.lock') }}
+                    ssh-host: ${{ secrets.SSH_HOST }}
+                    ssh-user: ${{ secrets.SSH_USER }}
+                    ssh-port: ${{ secrets.SSH_PORT }}
+                    deploy-key: ${{ secrets.DEPLOY_KEY }}
+                    app-dir: ${{ inputs.app-dir }}
+                    rsync-exclude: ${{ inputs.rsync-exclude }}
 
-            # Кэш node_modules по package-lock.json и версии Node: npm ci всегда удаляет node_modules,
-            # поэтому при попадании в кэш установка пропускается целиком
-            -   name: Node version
-                id: node
-                if: hashFiles('package-lock.json') != ''
-                run: echo "version=$(node -v)" >> "$GITHUB_OUTPUT"
-
-            -   name: Restore JS dependencies
-                id: node-cache
-                if: hashFiles('package-lock.json') != ''
-                uses: actions/cache/restore@v4
-                with:
-                    path: node_modules
-                    key: node-modules-${{ runner.os }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json') }}
-
-            -   name: Install JS dependencies
-                if: hashFiles('package.json') != '' && steps.node-cache.outputs.cache-hit != 'true'
-                run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
-
-            -   name: Save JS dependencies
-                if: hashFiles('package-lock.json') != '' && steps.node-cache.outputs.cache-hit != 'true'
-                uses: actions/cache/save@v4
-                with:
-                    path: node_modules
-                    key: node-modules-${{ runner.os }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json') }}
-
-            # Сборка до проверок: тесты страниц видят манифест Vite
-            -   name: Build assets
-                if: hashFiles('package.json') != ''
-                run: |
-                    # Уязвимости high и critical в зависимостях сайта (без dev) останавливают деплой
-                    npm audit --omit=dev --audit-level=high
-                    npm run lint --if-present
-                    npm run test --if-present
-                    if npm run | grep -qE '^  build$'; then npm run build; else echo "No build script"; fi
-
-            # Проверки кода до выкладки: красная проверка — деплоя нет. Pint и Larastan — если в проекте есть их конфиг
-            -   name: Check code
-                if: hashFiles('composer.json') != '' && inputs.deploy-env != 'staging'
-                run: |
-                    # Известная уязвимость в зависимостях — деплоя нет; заброшенные пакеты только показываем
-                    composer audit --locked --abandoned=report
-                    if [ -f pint.json ]; then vendor/bin/pint --test; fi
-                    if [ -f phpstan.neon ] || [ -f phpstan.neon.dist ]; then vendor/bin/phpstan analyse --no-progress --memory-limit=1G; fi
-                    if [ -f artisan ] && [ -d tests ]; then
-                        # Для sqlite переменные не задаются: phpunit.xml сам выбирает базу в памяти
-                        case "$DATABASE" in
-                            mariadb) export DB_HOST=127.0.0.1 DB_PORT=3306 DB_DATABASE=testing DB_USERNAME=testing DB_PASSWORD=secret ;;
-                            pgsql) export DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=testing DB_USERNAME=testing DB_PASSWORD=secret ;;
-                        esac
-                        [ -f .env ] || cp .env.example .env 2>/dev/null || touch .env
-                        php artisan key:generate --force --no-interaction
-                        if [ -n "$TEST_SETUP" ]; then bash -c "$TEST_SETUP"; fi
-                        php artisan test
-                        rm -f .env
-                    fi
-
-            # На сервер — без dev-пакетов: там не нужны ни composer, ни доступ к Packagist
-            -   name: Install PHP dependencies
-                if: hashFiles('composer.json') != ''
-                run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-
-            -   name: Upload to server
-                env:
-                    SSH_HOST: ${{ secrets.SSH_HOST }}
-                    SSH_USER: ${{ secrets.SSH_USER }}
-                    SSH_PORT: ${{ secrets.SSH_PORT }}
-                    DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-                run: |
-                    install -m 600 /dev/null ~/deploy_key
-                    printf '%s\n' "$DEPLOY_KEY" > ~/deploy_key
-                    SSH="ssh -p $SSH_PORT -i $HOME/deploy_key -o StrictHostKeyChecking=accept-new"
-
-                    # Исключённое rsync не удаляет на сервере: .env, данные storage, ссылку public/storage,
-                    # проверки Let's Encrypt и каталоги из RSYNC_EXCLUDE. bootstrap/cache едет вместе с vendor:
-                    # манифест пакетов собран composer install выше, старые кэши удаляются, optimize соберёт заново
-                    excludes=(--exclude=/.git/ --exclude=/.github/ --exclude=/node_modules/ --exclude=/.env --exclude=/storage/
-                        --exclude=/public/storage --exclude=/public/.well-known/)
-                    for path in $RSYNC_EXCLUDE; do excludes+=("--exclude=/${path#/}"); done
-
-                    rsync -az --delete "${excludes[@]}" -e "$SSH" ./ "$SSH_USER@$SSH_HOST:$APP_DIR/"
-
-                    # Структура storage нужна на новом сервере, но существующие файлы не трогаем
-                    if [ -d storage ]; then rsync -az --ignore-existing -e "$SSH" storage/ "$SSH_USER@$SSH_HOST:$APP_DIR/storage/"; fi
-
-                    rm -f ~/deploy_key
-
-            -   name: Finish on server
+            -   uses: zuberkz/laravel-kit/.github/actions/finish@main
                 if: hashFiles('artisan') != ''
-                uses: appleboy/ssh-action@v1.2.5
                 with:
-                    host: ${{ secrets.SSH_HOST }}
-                    username: ${{ secrets.SSH_USER }}
-                    key: ${{ secrets.DEPLOY_KEY }}
-                    port: ${{ secrets.SSH_PORT }}
-                    command_timeout: 10m
-                    envs: APP_DIR,PHP,AUTO_MIGRATE
-                    script: |
-                        set -euo pipefail
-
-                        cd "$APP_DIR"
-
-                        if [ ! -f .env ]; then
-                            echo "::error::$APP_DIR/.env is missing: create it with isp-write-env and run the deploy again"
-                            exit 1
-                        fi
-
-                        if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
-                            "$PHP" artisan migrate --force
-                            # Роли и права — по RoleEnum проекта; без spatie/laravel-permission команды нет
-                            if "$PHP" artisan list --raw | grep -q '^kit:sync-roles'; then
-                                "$PHP" artisan kit:sync-roles --no-interaction
-                            fi
-                        fi
-
-                        [ -e public/storage ] || "$PHP" artisan storage:link
-                        "$PHP" artisan optimize
-
-                        # Воркеры очереди держат в памяти старый код: перезапуск после выкладки
-                        "$PHP" artisan queue:restart
-
-                        # Кэш готовых страниц (spatie/laravel-responsecache) — иначе после деплоя отдаются старые страницы
-                        if "$PHP" artisan list --raw | grep -q '^responsecache:clear'; then
-                            "$PHP" artisan responsecache:clear
-                        fi
-
-                        echo "Deploy complete"
+                    ssh-host: ${{ secrets.SSH_HOST }}
+                    ssh-user: ${{ secrets.SSH_USER }}
+                    ssh-port: ${{ secrets.SSH_PORT }}
+                    deploy-key: ${{ secrets.DEPLOY_KEY }}
+                    app-dir: ${{ inputs.app-dir }}
+                    php: ${{ inputs.php }}
+                    auto-migrate: ${{ inputs.auto-migrate }}
