@@ -19,10 +19,12 @@ final readonly class SyncRolesAction
     ) {}
 
     /**
-     * @param class-string<BackedEnum&RoleEnumInterface> $roles
+     * @param class-string<BackedEnum&RoleEnumInterface> $roles          RoleEnum: роли по умолчанию
+     * @param class-string<BackedEnum>|null              $permissions    PermissionEnum: все права проекта
+     * @param string|null                                $superAdminRole роль, которой всегда выдаются все права
      */
-    public function handle(string $roles): RoleSyncResultData
+    public function handle(string $roles, ?string $permissions = null, ?string $superAdminRole = null): RoleSyncResultData
     {
-        return $this->db->transaction(fn (): RoleSyncResultData => $this->roles->sync($roles));
+        return $this->db->transaction(fn (): RoleSyncResultData => $this->roles->sync($roles, $permissions, $superAdminRole));
     }
 }

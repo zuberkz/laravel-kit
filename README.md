@@ -11,7 +11,7 @@
 | `DomainException` и его обработка, канал лога `domain` | `src/Core`, `config` | автозагрузка и сервис-провайдер пакета |
 | Разделы «Пользователи» и «Роли» в Filament | `src/Modules/Users` | плагин `UsersPlugin` в панели проекта |
 | Первый администратор на сервере | `src/Modules/Users` | `php artisan kit:make-user почта --role=admin` — пароль печатается один раз |
-| Синхронизация ролей и прав с `RoleEnum` | `src/Modules/Access` | команда `kit:sync-roles`, её запускает общий деплой |
+| Права из `PermissionEnum`, роли по умолчанию из `RoleEnum` | `src/Modules/Access` | команда `kit:sync-roles`, её запускает общий деплой |
 | Заголовки безопасности, `noindex` вне прода | `src/Modules/Security`, `src/Modules/Seo` | глобальные middleware, сами |
 | `robots.txt`, `sitemap.xml`, `canonical_url()` | `src/Modules/Seo` | маршруты кита; разделы sitemap — классы проекта с тегом |
 | Защита форм от спама | `src/Modules/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
@@ -63,8 +63,14 @@ composer require zuberkz/laravel-kit
   роли галочками с описаниями. Записывают действия `CreateUserAction` / `UpdateUserAction`.
 - Супер-администратор (разработчик) виден и выдаётся только супер-администраторам; себя удалить
   нельзя.
-- «Роли» — только просмотр: роли с правами и числом пользователей. Роли и права задаются в коде
-  (`RoleEnum::permissions()`) и раскладываются сидером.
+- «Роли»: роли заводят, переименовывают и удаляют в админке, права ролям отмечают галочками.
+  Список прав — `PermissionEnum` проекта (право работает, только если его проверяет код), подписи
+  и описания — `HasLabel` / `HasDescription`. Роли из `RoleEnum` создаёт `kit:sync-roles` с
+  правами по умолчанию (`RoleEnum::permissions()`); дальше их права правят в админке, деплой их
+  не трогает, переименовать или удалить такую роль нельзя. Супер-администратору синхронизация
+  всегда выдаёт все права, в админке он не настраивается. Роль с пользователями не удаляется;
+  права, которых нет у самого пользователя, он не выдаёт и не забирает. Записывают действия
+  `CreateRoleAction` / `UpdateRoleAction` / `DeleteRoleAction`.
 
 Модель `User` проекта: трейт `Spatie\Permission\Traits\HasRoles` и интерфейс
 `Zuber\Kit\Modules\Users\Contracts\HasRolesInterface`. Панель:
@@ -72,9 +78,9 @@ composer require zuberkz/laravel-kit
 ```php
 ->plugin(
     UsersPlugin::make(RoleEnum::class)                    // enum: HasLabel, HasDescription — по желанию
-        ->superAdminRole(RoleEnum::SUPER_ADMIN)
+        ->superAdminRole(RoleEnum::SUPER_ADMIN)           // по умолчанию kit.access.super_admin
         ->managePermission(PermissionEnum::MANAGE_USERS)  // без него раздел открыт всем в панели
-        ->permissions(PermissionEnum::class)              // подписи прав в разделе «Роли»
+        ->permissions(PermissionEnum::class)              // галочки прав; по умолчанию kit.access.permissions
         ->navigationGroup(NavigationGroupEnum::ACCESS),
 )
 ```

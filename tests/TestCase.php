@@ -28,6 +28,7 @@ use Zuber\Kit\Modules\Access\Actions\SyncRolesAction;
 use Zuber\Kit\Tests\Fixtures\Blocks\FaqBlock;
 use Zuber\Kit\Tests\Fixtures\Blocks\HeroBlock;
 use Zuber\Kit\Tests\Fixtures\PanelServiceProvider;
+use Zuber\Kit\Tests\Fixtures\PermissionEnum;
 use Zuber\Kit\Tests\Fixtures\RoleEnum;
 use Zuber\Kit\Tests\Fixtures\User;
 
@@ -73,6 +74,7 @@ abstract class TestCase extends Orchestra
         $app['config']->set('auth.providers.users.model', User::class);
         $app['config']->set('database.default', 'testing');
         $app['config']->set('kit.access.roles', RoleEnum::class);
+        $app['config']->set('kit.access.permissions', PermissionEnum::class);
         $app['config']->set('kit.pages', [
             'enabled' => true,
             'blocks' => [HeroBlock::class, FaqBlock::class],
@@ -104,7 +106,7 @@ abstract class TestCase extends Orchestra
      */
     protected function seedRoles(): void
     {
-        $this->app->make(SyncRolesAction::class)->handle(RoleEnum::class);
+        $this->app->make(SyncRolesAction::class)->handle(RoleEnum::class, PermissionEnum::class, RoleEnum::SUPER_ADMIN->value);
     }
 
     protected function userWithRole(?RoleEnum $role, string $email = ''): User

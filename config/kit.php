@@ -2,9 +2,13 @@
 
 // Настройки кита; проект меняет нужные ключи в своём config/kit.php (ключи первого уровня целиком).
 return [
-    // Роли и права: enum ролей с permissions(), из него kit:sync-roles раскладывает базу
+    // Права — в коде (PermissionEnum), роли — в базе: их заводят и правят в админке. kit:sync-roles
+    // создаёт права из enum, недостающие роли из RoleEnum с правами по умолчанию (permissions()) и
+    // выдаёт супер-администратору все права; права остальных ролей не трогает
     'access' => [
         'roles' => 'App\\Enums\\Access\\RoleEnum',
+        'permissions' => 'App\\Enums\\Access\\PermissionEnum',
+        'super_admin' => 'super_admin',
     ],
 
     // Заголовки безопасности на каждый ответ; HSTS — только на проде по https

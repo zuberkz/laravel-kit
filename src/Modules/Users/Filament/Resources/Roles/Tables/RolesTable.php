@@ -2,9 +2,11 @@
 
 namespace Zuber\Kit\Modules\Users\Filament\Resources\Roles\Tables;
 
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Zuber\Kit\Modules\Users\Data\UsersSettingsData;
+use Zuber\Kit\Modules\Users\Filament\Resources\Roles\RoleResource;
 
 final class RolesTable
 {
@@ -18,7 +20,8 @@ final class RolesTable
                     ->label(__('Роль'))
                     ->formatStateUsing(fn (string $state): string => $settings->roleLabel($state))
                     ->description(fn (string $state): ?string => $settings->roleDescription($state))
-                    ->weight('medium'),
+                    ->weight('medium')
+                    ->wrap(),
 
                 TextColumn::make('permissions.name')
                     ->label(__('Права'))
@@ -27,6 +30,7 @@ final class RolesTable
                     ->formatStateUsing(fn (string $state): string => $settings->permissionLabel($state))
                     ->limitList(6)
                     ->expandableLimitedList()
+                    ->wrap()
                     ->placeholder(__('Нет прав')),
 
                 TextColumn::make('users_count')
@@ -34,8 +38,13 @@ final class RolesTable
                     ->numeric()
                     ->alignEnd(),
             ])
+            ->defaultSort('id')
             ->paginated(false)
+            ->recordActions([
+                EditAction::make(),
+                RoleResource::deleteAction(),
+            ])
             ->emptyStateHeading(__('Ролей пока нет'))
-            ->emptyStateDescription(__('Роли создаёт сидер из RoleEnum проекта.'));
+            ->emptyStateDescription(__('Создайте роль и отметьте, что она может.'));
     }
 }

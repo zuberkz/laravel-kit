@@ -16,7 +16,7 @@ final class SyncRolesCommand extends Command
 {
     protected $signature = 'kit:sync-roles';
 
-    protected $description = 'Привести роли и права в базе к enum ролей проекта (kit.access.roles)';
+    protected $description = 'Создать права из кода и недостающие роли (kit.access), права существующих ролей не трогать';
 
     public function handle(SyncRolesAction $sync, Repository $config): int
     {
@@ -32,14 +32,37 @@ final class SyncRolesCommand extends Command
             throw RoleEnumException::invalid($roles);
         }
 
-        $result = $sync->handle($roles);
+        $superAdminRole = $config->get('kit.access.super_admin');
+        $result = $sync->handle($roles, $this->permissions($config), is_string($superAdminRole) && $superAdminRole !== '' ? $superAdminRole : null);
 
-        $this->components->info(sprintf('Ролей: %d, прав: %d — база совпадает с %s.', $result->roles, $result->permissions, class_basename($roles)));
+        $this->components->info(sprintf('Прав в коде: %d, ролей по умолчанию: %d.', $result->permissions, $result->roles));
 
-        if ($result->staleRoles !== []) {
-            $this->components->warn('В базе есть роли, которых нет в коде (не удалены): ' . implode(', ', $result->staleRoles));
+        if ($result->createdRoles !== []) {
+            $this->components->info('Созданы роли: ' . implode(', ', $result->createdRoles));
+        }
+
+        if ($result->stalePermissions !== []) {
+            $this->components->warn('В базе есть права, которых нет в коде (не удалены): ' . implode(', ', $result->stalePermissions));
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @return class-string<BackedEnum>|null
+     */
+    private function permissions(Repository $config): ?string
+    {
+        $permissions = $config->get('kit.access.permissions');
+
+        if (! is_string($permissions) || ! enum_exists($permissions)) {
+            return null;
+        }
+
+        if (! is_subclass_of($permissions, BackedEnum::class)) {
+            throw RoleEnumException::invalidPermissions($permissions);
+        }
+
+        return $permissions;
     }
 }

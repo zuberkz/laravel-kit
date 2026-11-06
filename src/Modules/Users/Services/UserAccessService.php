@@ -3,17 +3,23 @@
 namespace Zuber\Kit\Modules\Users\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Contracts\Role;
 use Zuber\Kit\Modules\Users\Contracts\HasRolesInterface;
 use Zuber\Kit\Modules\Users\Data\UsersSettingsData;
+use Zuber\Kit\Modules\Users\Exceptions\RoleException;
 use Zuber\Kit\Modules\Users\Exceptions\SuperAdminRoleException;
+use Zuber\Kit\Modules\Users\Repositories\RoleRepository;
 
 /**
- * Кто видит раздел «Пользователи» и что в нём может. Супер-администратор (разработчик) виден и
- * управляется только другими супер-администраторами.
+ * Кто видит разделы «Пользователи» и «Роли» и что в них может. Супер-администратор (разработчик)
+ * виден и управляется только другими супер-администраторами; его права не настраиваются.
  */
 final readonly class UserAccessService
 {
-    public function __construct(private UsersSettingsData $settings) {}
+    public function __construct(
+        private UsersSettingsData $settings,
+        private RoleRepository $roles,
+    ) {}
 
     public function isSuperAdmin(HasRolesInterface $user): bool
     {
@@ -59,9 +65,53 @@ final readonly class UserAccessService
     {
         $hiddenRole = $this->hiddenRole($actor);
 
-        return collect($this->settings->roleLabels())
-            ->reject(fn (string $label, string $name): bool => $name === $hiddenRole)
+        return collect($this->roles->names($this->hiddenRole($actor)))
+            ->mapWithKeys(fn (string $name): array => [$name => $this->settings->roleLabel($name)])
             ->all();
+    }
+
+    public function isSuperAdminRole(Role $role): bool
+    {
+        return $role->name === $this->settings->superAdminRole;
+    }
+
+    public function canEditRole(HasRolesInterface $actor, Role $role): bool
+    {
+        return $this->canManage($actor) && ! $this->isSuperAdminRole($role);
+    }
+
+    /**
+     * Роли из кода не удаляются: на них опираются код, сидер и kit:make-user.
+     */
+    public function canDeleteRole(HasRolesInterface $actor, Role $role): bool
+    {
+        return $this->canEditRole($actor, $role) && ! $this->settings->isCodeRole($role->name);
+    }
+
+    /**
+     * Права, которых у $actor нет, он не выдаёт и не забирает — иначе выдал бы их себе через свою роль.
+     *
+     * @param array<int, string> $permissions        права роли после сохранения
+     * @param array<int, string> $currentPermissions права роли до сохранения
+     *
+     * @throws RoleException
+     */
+    public function ensureCanChangePermissions(HasRolesInterface $actor, array $permissions, array $currentPermissions): void
+    {
+        if ($this->isSuperAdmin($actor)) {
+            return;
+        }
+
+        $notHeld = collect($permissions)->diff($currentPermissions)
+            ->merge(collect($currentPermissions)->diff($permissions))
+            ->reject(fn (string $permission): bool => $actor->checkPermissionTo($permission))
+            ->map(fn (string $permission): string => $this->settings->permissionLabel($permission))
+            ->values()
+            ->all();
+
+        if ($notHeld !== []) {
+            throw RoleException::permissionsNotHeld($notHeld);
+        }
     }
 
     /**

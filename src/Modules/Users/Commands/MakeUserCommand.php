@@ -17,7 +17,7 @@ final class MakeUserCommand extends Command
     protected $signature = 'kit:make-user
         {email : Почта для входа в админку}
         {--name= : Имя; по умолчанию — часть почты до @}
-        {--role=* : Роль из RoleEnum (super_admin, admin, manager…), можно несколько}
+        {--role=* : Имя роли из раздела «Роли» (super_admin, admin, manager…), можно несколько}
         {--reset-password : Выдать новый пароль существующему пользователю}';
 
     protected $description = 'Завести пользователя админки с ролью и сгенерированным паролем';

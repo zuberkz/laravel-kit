@@ -16,7 +16,14 @@ final readonly class AccessRepository
         $this->registrar->getPermissionClass()::findOrCreate($name);
     }
 
+    public function roleExists(string $name): bool
+    {
+        return $this->registrar->getRoleClass()::query()->where('name', $name)->exists();
+    }
+
     /**
+     * Создаёт роль, если её нет, и выставляет ей ровно эти права.
+     *
      * @param array<int, string> $permissions
      */
     public function syncRole(string $name, array $permissions): void
@@ -28,10 +35,10 @@ final readonly class AccessRepository
     /**
      * @return array<int, string>
      */
-    public function roleNames(): array
+    public function permissionNames(): array
     {
         /** @var array<int, string> */
-        return $this->registrar->getRoleClass()::query()->pluck('name')->all();
+        return $this->registrar->getPermissionClass()::query()->pluck('name')->all();
     }
 
     /**

@@ -9,8 +9,9 @@ use Illuminate\Contracts\Support\Htmlable;
 use UnitEnum;
 
 /**
- * Настройки раздела «Пользователи» из UsersPlugin: роли и права проекта (enum) и кто управляет
- * пользователями.
+ * Настройки разделов «Пользователи» и «Роли» из UsersPlugin: роли по умолчанию и права проекта
+ * (enum) и кто управляет пользователями. Роли из enum — системные: подпись и описание из кода, имя
+ * не меняется; остальные роли заводят в админке, их подпись — имя.
  */
 final readonly class UsersSettingsData
 {
@@ -18,7 +19,7 @@ final readonly class UsersSettingsData
      * @param class-string<BackedEnum&HasLabel>      $roles            RoleEnum проекта; HasDescription — описания ролей в форме
      * @param string|null                            $superAdminRole   роль разработчика: видна и выдаётся только супер-администраторам
      * @param string|null                            $managePermission право на раздел; null — раздел открыт всем, кто вошёл в панель
-     * @param class-string<BackedEnum&HasLabel>|null $permissions      PermissionEnum проекта — подписи прав в разделе «Роли»
+     * @param class-string<BackedEnum&HasLabel>|null $permissions      PermissionEnum проекта — галочки прав в разделе «Роли»
      */
     public function __construct(
         public string $roles,
@@ -58,6 +59,11 @@ final readonly class UsersSettingsData
         return $descriptions;
     }
 
+    public function isCodeRole(string $name): bool
+    {
+        return array_key_exists($name, $this->roleLabels());
+    }
+
     public function roleLabel(string $name): string
     {
         return $this->roleLabels()[$name] ?? $name;
@@ -73,6 +79,39 @@ final readonly class UsersSettingsData
         $permission = $this->permissions === null ? null : $this->permissions::tryFrom($name);
 
         return $permission === null ? $name : $this->label($permission);
+    }
+
+    /**
+     * Права в порядке enum: имя права => подпись.
+     *
+     * @return array<string, string>
+     */
+    public function permissionOptions(): array
+    {
+        if ($this->permissions === null) {
+            return [];
+        }
+
+        return collect($this->permissions::cases())
+            ->mapWithKeys(fn (BackedEnum&HasLabel $permission): array => [(string) $permission->value => $this->label($permission)])
+            ->all();
+    }
+
+    /**
+     * Описания прав, у которых enum их даёт (HasDescription): имя права => описание.
+     *
+     * @return array<string, string>
+     */
+    public function permissionDescriptions(): array
+    {
+        if ($this->permissions === null) {
+            return [];
+        }
+
+        return collect($this->permissions::cases())
+            ->filter(fn (BackedEnum $permission): bool => $permission instanceof HasDescription)
+            ->mapWithKeys(fn (BackedEnum&HasDescription $permission): array => [(string) $permission->value => $this->text($permission->getDescription())])
+            ->all();
     }
 
     private function label(HasLabel $case): string
