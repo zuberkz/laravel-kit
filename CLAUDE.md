@@ -74,7 +74,8 @@ README table; an arch rule a project must follow goes into `resources/stubs/test
 - Tests mirror the code: `tests/Feature/Modules/<Module>`; test fixtures (a User, enums, a panel,
   blocks, a contact form) in `tests/Fixtures`. Every action with its refusals, every admin
   screen that writes, every access rule.
-- Checks run in Docker, not on the host: `docker compose build` once, then
+- Checks run in Docker, not on the host, on the studio's shared PHP image
+  (`ghcr.io/zuberkz/laravel-php:8.5`, repository `../laravel-docker`):
   `docker compose run --rm php composer check` (Pint with `resources/stubs/pint.json`, Larastan,
   Pest). The GitHub workflow `checks.yml` runs the same.
 - After moving classes or views, clear compiled views of testbench

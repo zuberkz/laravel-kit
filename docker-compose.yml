@@ -1,7 +1,8 @@
-# Проверки пакета в Docker, без PHP на хосте: docker compose run --rm php composer check
+# Проверки пакета в Docker, без PHP на хосте: docker compose run --rm php composer check.
+# Образ — общий для сайтов студии (github.com/zuberkz/laravel-docker): тот же PHP, что у сайтов.
 services:
     php:
-        build: .docker
+        image: ghcr.io/zuberkz/laravel-php:8.5
         working_dir: /app
         volumes:
             - ./:/app
