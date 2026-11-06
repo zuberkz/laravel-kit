@@ -147,6 +147,9 @@ jobs:
 сборка фронта), `checks` (audit, Pint, Larastan, тесты), `upload` (composer без dev и rsync), `finish`
 (artisan на сервере). Всё идёт одним job: каждый job заново поднимает машину и округляет минуты.
 
+Пуш, где изменился только фронт (`resources/css`, `resources/js`, `public/images|fonts|icons`), проверки кода
+пропускает — сборка фронта с `npm audit` идёт как обычно; запуск вручную проверяет всё.
+
 Зависимости кэшируются: `vendor` — по `composer.lock` и версии PHP, `node_modules` — по
 `package-lock.json` и версии Node. Пока lock-файлы не менялись, пакеты не скачиваются заново.
 

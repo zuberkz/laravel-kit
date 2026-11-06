@@ -1,5 +1,7 @@
 # Проверки кода до выкладки: красная проверка — деплоя нет. Pint и Larastan — если в проекте есть их конфиг.
 # Часть общего деплоя (.github/workflows/deploy.yml); БД для тестов (mariadb, pgsql) поднимает сам workflow.
+# Пуш только с фронтом (стили, скрипты, картинки, шрифты — frontend-paths) проверки пропускает: PHP-тесты их не проверяют,
+# сборка фронта (npm audit, lint, build) идёт в build как обычно. Запуск вручную и неизвестный список изменений — проверки целиком.
 name: Checks
 description: composer audit, Pint, Larastan и тесты
 
@@ -10,12 +12,41 @@ inputs:
     test-setup:
         description: Команды перед тестами, после key:generate — например php artisan passport:keys
         default: ''
+    frontend-paths:
+        description: Регулярное выражение путей фронта; пуш, где все изменённые файлы под него подходят, проверки пропускает
+        default: '^(resources/(css|js)/|public/(images|fonts|icons)/)'
 
 runs:
     using: composite
     steps:
+        -   name: Changed files
+            id: scope
+            shell: bash
+            env:
+                EVENT: ${{ github.event_name }}
+                BEFORE: ${{ github.event.before }}
+                AFTER: ${{ github.sha }}
+                FRONTEND: ${{ inputs.frontend-paths }}
+            run: |
+                # Не push, первый пуш ветки или прошлый коммит недоступен (force push) — проверяем всё
+                if [ "$EVENT" != "push" ] || [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+                    || ! git fetch --no-tags --depth=1 origin "$BEFORE" 2>/dev/null; then
+                    echo "frontend-only=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                fi
+
+                changed=$(git diff --name-only "$BEFORE" "$AFTER")
+                other=$(printf '%s\n' "$changed" | grep -vE "$FRONTEND" | grep -v '^$' || true)
+
+                if [ -n "$changed" ] && [ -z "$other" ]; then
+                    echo "::notice::Изменён только фронт — проверки кода пропущены: $(printf '%s' "$changed" | paste -sd ',' - | sed 's/,/, /g')"
+                    echo "frontend-only=true" >> "$GITHUB_OUTPUT"
+                else
+                    echo "frontend-only=false" >> "$GITHUB_OUTPUT"
+                fi
+
         -   name: Check code
-            if: hashFiles('composer.json') != ''
+            if: hashFiles('composer.json') != '' && steps.scope.outputs.frontend-only != 'true'
             shell: bash
             env:
                 DATABASE: ${{ inputs.database }}
