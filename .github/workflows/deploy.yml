@@ -222,4 +222,12 @@ jobs:
                         [ -e public/storage ] || "$PHP" artisan storage:link
                         "$PHP" artisan optimize
 
+                        # Воркеры очереди держат в памяти старый код: перезапуск после выкладки
+                        "$PHP" artisan queue:restart
+
+                        # Кэш готовых страниц (spatie/laravel-responsecache) — иначе после деплоя отдаются старые страницы
+                        if "$PHP" artisan list --raw | grep -q '^responsecache:clear'; then
+                            "$PHP" artisan responsecache:clear
+                        fi
+
                         echo "Deploy complete"
