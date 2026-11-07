@@ -11,11 +11,12 @@ use Zuber\Kit\Modules\Leads\Enums\LeadStatusEnum;
 use Zuber\Kit\Modules\Leads\Exceptions\TooManyLeadsException;
 use Zuber\Kit\Modules\Leads\Models\Lead;
 use Zuber\Kit\Modules\Leads\Notifications\NewLeadNotification;
+use Zuber\Kit\Modules\Leads\Notifications\TelegramChannel;
 use Zuber\Kit\Modules\Leads\Repositories\LeadRepository;
 
 /**
- * Заявки с сайта: не чаще kit.leads.per_minute с одного IP, письмо — на kit.leads.mail_to
- * (список или строка через запятую).
+ * Заявки с сайта: не чаще kit.leads.per_minute с одного IP; команде — письмо на kit.leads.mail_to (список
+ * или строка через запятую) и сообщение в Telegram (kit.leads.telegram), что из этого настроено.
  */
 final readonly class LeadService
 {
@@ -24,6 +25,7 @@ final readonly class LeadService
         private RateLimiter $limiter,
         private Repository $config,
         private Dispatcher $notifications,
+        private LeadTelegramService $telegram,
     ) {}
 
     /**
@@ -53,7 +55,8 @@ final readonly class LeadService
     }
 
     /**
-     * Письмо на адреса формы, а если их нет — на kit.leads.mail_to; нет адресов — заявка только в админке.
+     * Письмо на адреса формы, а если их нет — на kit.leads.mail_to, и сообщение в Telegram, если он настроен;
+     * ни того ни другого — заявка только в админке.
      */
     public function notifyTeam(Lead $lead, ?string $formMailTo = null): void
     {
@@ -66,11 +69,23 @@ final readonly class LeadService
             ->values()
             ->all();
 
-        if ($emails === []) {
+        $team = new AnonymousNotifiable;
+
+        if ($emails !== []) {
+            $team->route('mail', $emails);
+        }
+
+        $telegram = $this->telegram->route();
+
+        if ($telegram !== null) {
+            $team->route(TelegramChannel::ROUTE, $telegram);
+        }
+
+        if ($team->routes === []) {
             return;
         }
 
-        $this->notifications->send((new AnonymousNotifiable)->route('mail', $emails), new NewLeadNotification($lead));
+        $this->notifications->send($team, new NewLeadNotification($lead, $telegram === null ? null : $this->telegram->adminUrl()));
     }
 
     public function markProcessed(Lead $lead): Lead

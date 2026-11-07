@@ -20,6 +20,8 @@ paths:
 - Leads and orders reach the team by two channels (mail + Telegram): one failing must not lose
   the lead — the record is stored first, notifications follow.
 - Addresses and chat ids are configuration (`.env` → `config/services.php`), not code.
+- Leads of the kit already go to mail and Telegram (`kit.leads.mail_to`, `kit.leads.telegram`, rule
+  `pages.md`): a site configures them, it does not write its own lead notifications.
 - Links in mail are absolute on `APP_URL`; actions from mail (unsubscribe, confirm) use signed
   URLs.
 - Tests: `Notification::fake()` / `Mail::fake()` and `assertSentTo` with the recipient and the key
