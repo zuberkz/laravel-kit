@@ -1,14 +1,15 @@
 <?php
 
-namespace Zuber\Kit\Modules\Leads\Notifications;
+namespace Zuber\Kit\Modules\Telegram\Notifications;
 
 use Illuminate\Notifications\Notification;
-use Zuber\Kit\Modules\Leads\Clients\TelegramClient;
-use Zuber\Kit\Modules\Leads\Exceptions\TelegramUnavailableException;
+use Zuber\Kit\Modules\Telegram\Clients\TelegramClient;
+use Zuber\Kit\Modules\Telegram\Contracts\TelegramNotificationInterface;
+use Zuber\Kit\Modules\Telegram\Exceptions\TelegramUnavailableException;
 
 /**
- * Канал уведомлений Telegram для заявок: куда — маршрут получателя ROUTE (['chat_id' => …, 'thread_id' => …]),
- * что — toTelegram() уведомления о заявке.
+ * Канал уведомлений Telegram: куда — маршрут получателя ROUTE (['chat_id' => …, 'thread_id' => …]:
+ * AnonymousNotifiable или routeNotificationForTelegram() модели), что — toTelegram() уведомления.
  */
 final readonly class TelegramChannel
 {
@@ -27,12 +28,12 @@ final readonly class TelegramChannel
         $route = method_exists($notifiable, 'routeNotificationFor') ? $notifiable->routeNotificationFor(self::ROUTE, $notification) : null;
         $chatId = is_array($route) ? ($route['chat_id'] ?? null) : null;
 
-        if (! $notification instanceof NewLeadNotification || ! (is_int($chatId) || (is_string($chatId) && $chatId !== ''))) {
+        if (! $notification instanceof TelegramNotificationInterface || ! (is_int($chatId) || (is_string($chatId) && $chatId !== ''))) {
             return;
         }
 
         $threadId = $route['thread_id'] ?? null;
 
-        $this->telegram->sendMessage($chatId, $notification->toTelegram(), is_int($threadId) ? $threadId : null);
+        $this->telegram->sendMessage($chatId, $notification->toTelegram($notifiable)->toHtml(), is_int($threadId) ? $threadId : null);
     }
 }

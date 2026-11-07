@@ -1,6 +1,6 @@
 <?php
 
-namespace Zuber\Kit\Modules\Leads\Clients;
+namespace Zuber\Kit\Modules\Telegram\Clients;
 
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Http\Client\ConnectionException;
@@ -8,17 +8,17 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Zuber\Kit\Modules\Leads\Data\TelegramChatData;
-use Zuber\Kit\Modules\Leads\Exceptions\TelegramUnavailableException;
+use Zuber\Kit\Modules\Telegram\Data\TelegramChatData;
+use Zuber\Kit\Modules\Telegram\Exceptions\TelegramUnavailableException;
 
 /**
- * Клиент Telegram Bot API — только транспорт: что отправить и куда, решают сервисы.
- * Токен бота — kit.leads.telegram.bot_token.
+ * Клиент Telegram Bot API — только транспорт: что отправить и куда, решают сервисы и уведомления.
+ * Токен бота — kit.telegram.bot_token.
  */
 final readonly class TelegramClient
 {
     public function __construct(
-        #[Config('kit.leads.telegram.bot_token')]
+        #[Config('kit.telegram.bot_token')]
         private ?string $token = null,
     ) {}
 

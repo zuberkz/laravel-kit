@@ -2,6 +2,8 @@
 
 namespace Zuber\Kit\Modules\Leads\Services;
 
+use Filament\Facades\Filament;
+use Filament\Panel;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Notifications\Dispatcher;
@@ -9,14 +11,16 @@ use Illuminate\Notifications\AnonymousNotifiable;
 use Zuber\Kit\Modules\Leads\Data\LeadData;
 use Zuber\Kit\Modules\Leads\Enums\LeadStatusEnum;
 use Zuber\Kit\Modules\Leads\Exceptions\TooManyLeadsException;
+use Zuber\Kit\Modules\Leads\Filament\Resources\Leads\LeadResource;
 use Zuber\Kit\Modules\Leads\Models\Lead;
 use Zuber\Kit\Modules\Leads\Notifications\NewLeadNotification;
-use Zuber\Kit\Modules\Leads\Notifications\TelegramChannel;
 use Zuber\Kit\Modules\Leads\Repositories\LeadRepository;
+use Zuber\Kit\Modules\Telegram\Notifications\TelegramChannel;
+use Zuber\Kit\Modules\Telegram\Services\TelegramService;
 
 /**
  * Заявки с сайта: не чаще kit.leads.per_minute с одного IP; команде — письмо на kit.leads.mail_to (список
- * или строка через запятую) и сообщение в Telegram (kit.leads.telegram), что из этого настроено.
+ * или строка через запятую) и сообщение в Telegram (kit.telegram), что из этого настроено.
  */
 final readonly class LeadService
 {
@@ -25,7 +29,7 @@ final readonly class LeadService
         private RateLimiter $limiter,
         private Repository $config,
         private Dispatcher $notifications,
-        private LeadTelegramService $telegram,
+        private TelegramService $telegram,
     ) {}
 
     /**
@@ -85,11 +89,25 @@ final readonly class LeadService
             return;
         }
 
-        $this->notifications->send($team, new NewLeadNotification($lead, $telegram === null ? null : $this->telegram->adminUrl()));
+        $this->notifications->send($team, new NewLeadNotification($lead, $telegram === null ? null : $this->adminUrl()));
     }
 
     public function markProcessed(Lead $lead): Lead
     {
         return $this->leads->setStatus($lead, LeadStatusEnum::PROCESSED);
+    }
+
+    /**
+     * Список заявок в админке для ссылки в Telegram: панель Filament, где подключён LeadsPlugin; без неё — null.
+     */
+    private function adminUrl(): ?string
+    {
+        if (! class_exists(Filament::class)) {
+            return null;
+        }
+
+        $panel = collect(Filament::getPanels())->first(fn (Panel $panel): bool => $panel->hasPlugin('kit-leads'));
+
+        return $panel instanceof Panel ? LeadResource::getUrl(panel: $panel->getId()) : null;
     }
 }

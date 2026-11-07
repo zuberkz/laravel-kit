@@ -67,15 +67,12 @@ and the slots `header`, `footer`; it renders the meta tags, `CanonicalUrlSupport
 - A lead stores a snapshot of the answers (label → value), so it stays readable after the form
   changes; contacts go to `name`/`phone`/`email` for the list and "Позвонить". The team gets a
   queued mail at the form's addresses or `kit.leads.mail_to` (`LEADS_MAIL_TO`) and, when
-  `kit.leads.telegram` is set, a message in a Telegram group topic with a link to the leads in the
+  `kit.telegram` is set, a message in a Telegram group topic with a link to the leads in the
   admin — each channel its own queued job, so one failing does not hold the other. A site does not
   build its own lead table, form or lead notifications.
 - Telegram for leads: the project passes `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` and
-  `TELEGRAM_THREAD_ID` into `kit.leads.telegram` (`bot_token`, `chat_id`, `thread_id`) in its
-  `config/kit.php`. Setup: the client creates a bot in @BotFather and a group with Topics, makes the
-  bot an admin with "Manage topics" and writes a message there; then `php artisan kit:telegram`
-  lists the chat id, `--topic="Заявки с сайта"` creates the topic and prints its id, `--test` sends
-  a sample lead.
+  `TELEGRAM_THREAD_ID` into `kit.telegram` (`bot_token`, `chat_id`, `thread_id`) in its
+  `config/kit.php`; setup with `php artisan kit:telegram` — rule `notifications.md`.
 
 ## MCP: pages without the admin
 - The kit's `Zuber\Kit\Modules\Pages\Mcp\PagesServer` (package `laravel/mcp`) lets an AI

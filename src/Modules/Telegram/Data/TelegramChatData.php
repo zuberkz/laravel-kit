@@ -1,9 +1,9 @@
 <?php
 
-namespace Zuber\Kit\Modules\Leads\Data;
+namespace Zuber\Kit\Modules\Telegram\Data;
 
 /**
- * Чат, где боту писали или куда его добавили, — для настройки заявок в Telegram (kit:telegram).
+ * Чат, где боту писали или куда его добавили, — для настройки Telegram (kit:telegram).
  */
 final readonly class TelegramChatData
 {

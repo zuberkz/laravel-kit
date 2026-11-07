@@ -4,17 +4,17 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
-use Zuber\Kit\Modules\Leads\Clients\TelegramClient;
 use Zuber\Kit\Modules\Leads\Enums\LeadStatusEnum;
-use Zuber\Kit\Modules\Leads\Exceptions\TelegramUnavailableException;
 use Zuber\Kit\Modules\Leads\Models\Lead;
 use Zuber\Kit\Modules\Leads\Notifications\NewLeadNotification;
-use Zuber\Kit\Modules\Leads\Notifications\TelegramChannel;
 use Zuber\Kit\Modules\Leads\Services\LeadService;
+use Zuber\Kit\Modules\Telegram\Clients\TelegramClient;
+use Zuber\Kit\Modules\Telegram\Exceptions\TelegramUnavailableException;
+use Zuber\Kit\Modules\Telegram\Notifications\TelegramChannel;
 
 beforeEach(function (): void {
     Http::preventStrayRequests();
-    config(['kit.leads.telegram' => ['bot_token' => '123:secret', 'chat_id' => '-1001234567890', 'thread_id' => '7']]);
+    config(['kit.telegram' => ['bot_token' => '123:secret', 'chat_id' => '-1001234567890', 'thread_id' => '7']]);
 });
 
 /**
@@ -59,7 +59,7 @@ it('sends to telegram alone when there are no mail addresses', function (): void
 
 it('keeps telegram off without a bot or a chat', function (array $telegram): void {
     Notification::fake();
-    config(['kit.leads.telegram' => $telegram]);
+    config(['kit.telegram' => $telegram]);
 
     app(LeadService::class)->notifyTeam(telegramLead());
 
@@ -70,7 +70,7 @@ it('keeps telegram off without a bot or a chat', function (array $telegram): voi
 ]);
 
 it('formats the answers, escapes what the visitor typed and links to the admin', function (): void {
-    $html = (new NewLeadNotification(telegramLead(['answers' => [['label' => 'Комментарий', 'value' => '<b>жирно</b> & ссылка']]]), 'https://example.kz/admin/leads'))->toTelegram();
+    $html = (new NewLeadNotification(telegramLead(['answers' => [['label' => 'Комментарий', 'value' => '<b>жирно</b> & ссылка']]]), 'https://example.kz/admin/leads'))->toTelegram(new AnonymousNotifiable)->toHtml();
 
     expect($html)
         ->toStartWith('🔔 <b>Заявка с сайта</b>')
@@ -81,8 +81,8 @@ it('formats the answers, escapes what the visitor typed and links to the admin',
 });
 
 it('falls back to the contacts and cuts a long lead by whole lines', function (): void {
-    $short = (new NewLeadNotification(telegramLead(['answers' => []])))->toTelegram();
-    $long = (new NewLeadNotification(telegramLead(['answers' => collect(range(1, 40))->map(fn (int $i): array => ['label' => "Поле {$i}", 'value' => str_repeat('я', 290)])->all()]), 'https://example.kz/admin/leads'))->toTelegram();
+    $short = (new NewLeadNotification(telegramLead(['answers' => []])))->toTelegram(new AnonymousNotifiable)->toHtml();
+    $long = (new NewLeadNotification(telegramLead(['answers' => collect(range(1, 40))->map(fn (int $i): array => ['label' => "Поле {$i}", 'value' => str_repeat('я', 290)])->all()]), 'https://example.kz/admin/leads'))->toTelegram(new AnonymousNotifiable)->toHtml();
 
     expect($short)->toContain('<b>Имя:</b> Айгерим')->toContain('<b>Телефон:</b> +77071122536')->not->toContain('Открыть в админке')
         ->and(mb_strlen($long))->toBeLessThanOrEqual(4000)

@@ -43,17 +43,19 @@ return [
     ],
 
     // Заявки с сайта: mail_to — адреса для уведомлений (список или строка через запятую из .env),
-    // per_minute — заявок с одного IP в минуту; telegram — заявки в группу Telegram: токен бота (@BotFather),
-    // chat id группы и id темы (thread_id, группа с «Темами»), узнать — php artisan kit:telegram;
-    // без токена или чата Telegram выключен
+    // per_minute — заявок с одного IP в минуту; в Telegram заявки уходят, когда он настроен (telegram)
     'leads' => [
         'enabled' => false,
         'mail_to' => [],
         'per_minute' => 5,
-        'telegram' => [
-            'bot_token' => null,
-            'chat_id' => null,
-            'thread_id' => null,
-        ],
+    ],
+
+    // Уведомления команде в группу Telegram (заявки кита и любые уведомления сайта): токен бота (@BotFather),
+    // chat id группы и id темы (thread_id, группа с «Темами»), узнать — php artisan kit:telegram;
+    // без токена или чата Telegram выключен
+    'telegram' => [
+        'bot_token' => null,
+        'chat_id' => null,
+        'thread_id' => null,
     ],
 ];

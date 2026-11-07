@@ -18,7 +18,8 @@
 | Поля `PhoneInput` (+7) и `SearchInput` | `src/Core/Filament/Forms/Fields` | в схемах Filament |
 | Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Modules/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
 | MCP конструктора страниц: ИИ-ассистент собирает и правит лендинги из блоков | `src/Modules/Pages/Mcp` | `PagesServer` в `routes/ai.php` проекта с OAuth и правом на страницы (пакет `laravel/mcp`) |
-| Заявки: формы из конструктора в админке, заявки, письмо команде и сообщение в тему группы Telegram | `src/Modules/Leads` | `kit.leads.enabled`, `kit.leads.telegram`, `php artisan kit:telegram`, `<livewire:kit-lead-form :form>`, `LeadFormSelect`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
+| Заявки: формы из конструктора в админке, заявки, письмо команде и сообщение в тему группы Telegram | `src/Modules/Leads` | `kit.leads.enabled`, `<livewire:kit-lead-form :form>`, `LeadFormSelect`, `LeadsPlugin`, миграции `--tag=kit-leads-migrations` |
+| Уведомления команде в тему группы Telegram: заявки кита и любые уведомления сайта | `src/Modules/Telegram` | `kit.telegram`, `php artisan kit:telegram`, уведомление с `TelegramNotificationInterface` + `TelegramMessageData`, `TelegramService::notify()` |
 | Деплой на сервер ISPmanager | `.github/workflows/deploy.yml` | вызывается из `.github/workflows/deploy.yml` проекта |
 
 Опубликованные файлы перезаписываются при каждом `composer update`: правьте их здесь, а не в

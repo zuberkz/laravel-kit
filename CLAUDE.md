@@ -17,7 +17,7 @@ src/
   Core/                    used by two or more modules: exceptions, Support classes, shared
                            Filament fields, panel access
   Modules/<Module>/        one feature for projects: Access, Leads, Pages, Security, Seo, Spam,
-                           Users
+                           Telegram, Users
 config/kit.php             defaults of every kit.* key
 database/migrations/       migrations of the modules (published by the module's tag)
 resources/rules/           rules shipped to projects (.claude/rules/kit/)

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
     Http::preventStrayRequests();
-    config(['kit.leads.telegram' => ['bot_token' => '123:secret', 'chat_id' => '-1001234567890', 'thread_id' => null]]);
+    config(['kit.telegram' => ['bot_token' => '123:secret', 'chat_id' => '-1001234567890', 'thread_id' => null]]);
 });
 
 it('lists the chats and the topics the bot has seen', function (): void {
@@ -34,7 +34,7 @@ it('asks to write to the bot when nobody has', function (): void {
     $this->artisan('kit:telegram')->expectsOutputToContain('Боту ещё никто не писал')->assertFailed();
 });
 
-it('creates the topic for leads in the group and prints its id', function (): void {
+it('creates the topic in the group and prints its id', function (): void {
     Http::fake(['api.telegram.org/*/createForumTopic' => Http::response(['ok' => true, 'result' => ['message_thread_id' => 42, 'name' => 'Заявки с сайта']])]);
 
     $this->artisan('kit:telegram', ['--topic' => 'Заявки с сайта'])
@@ -44,19 +44,19 @@ it('creates the topic for leads in the group and prints its id', function (): vo
     Http::assertSent(fn (Request $request): bool => $request['chat_id'] === '-1001234567890' && $request['name'] === 'Заявки с сайта');
 });
 
-it('sends a test lead right away', function (): void {
+it('sends a test message right away', function (): void {
     Http::fake(['api.telegram.org/*/sendMessage' => Http::response(['ok' => true, 'result' => ['message_id' => 1]])]);
 
-    $this->artisan('kit:telegram', ['--test' => true])->expectsOutputToContain('Пробная заявка отправлена')->assertSuccessful();
+    $this->artisan('kit:telegram', ['--test' => true])->expectsOutputToContain('Пробное сообщение отправлено')->assertSuccessful();
 
-    Http::assertSent(fn (Request $request): bool => str_contains((string) $request['text'], 'Тестовая заявка'));
+    Http::assertSent(fn (Request $request): bool => str_contains((string) $request['text'], 'Тестовое сообщение'));
 });
 
 it('explains what to set when telegram is not configured', function (): void {
-    config(['kit.leads.telegram' => ['bot_token' => null, 'chat_id' => null, 'thread_id' => null]]);
+    config(['kit.telegram' => ['bot_token' => null, 'chat_id' => null, 'thread_id' => null]]);
 
     $this->artisan('kit:telegram', ['--test' => true])->expectsOutputToContain('TELEGRAM_BOT_TOKEN')->assertFailed();
-    $this->artisan('kit:telegram', ['--topic' => 'Заявки'])->expectsOutputToContain('kit.leads.telegram')->assertFailed();
+    $this->artisan('kit:telegram', ['--topic' => 'Заявки'])->expectsOutputToContain('kit.telegram')->assertFailed();
 });
 
 it('shows the telegram error instead of a stack trace', function (): void {

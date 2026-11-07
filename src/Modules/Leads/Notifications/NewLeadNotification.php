@@ -7,21 +7,19 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 use Zuber\Kit\Modules\Leads\Models\Lead;
+use Zuber\Kit\Modules\Telegram\Contracts\TelegramNotificationInterface;
+use Zuber\Kit\Modules\Telegram\Data\TelegramMessageData;
+use Zuber\Kit\Modules\Telegram\Notifications\TelegramChannel;
 
 /**
  * Новая заявка — команде со всеми ответами: письмом и/или в Telegram, смотря какие маршруты у получателя
  * (mail, TelegramChannel::ROUTE). Из очереди и только после сохранения заявки; каждый канал — своя задача
  * очереди, поэтому сбой Telegram не задерживает письмо, и наоборот.
  */
-final class NewLeadNotification extends Notification implements ShouldQueue
+final class NewLeadNotification extends Notification implements ShouldQueue, TelegramNotificationInterface
 {
     use Queueable;
-
-    /** Предел Telegram — 4096 символов, с запасом */
-    private const int TELEGRAM_LIMIT = 4000;
-    private const int VALUE_LIMIT = 300;
 
     public int $tries = 5;
 
@@ -29,12 +27,10 @@ final class NewLeadNotification extends Notification implements ShouldQueue
 
     /**
      * @param string|null $adminUrl список заявок в админке (ссылка в Telegram); null — без ссылки
-     * @param string|null $title    свой заголовок сообщения (пробная заявка); null — «Заявка с сайта»
      */
     public function __construct(
         public readonly Lead $lead,
         public readonly ?string $adminUrl = null,
-        public readonly ?string $title = null,
     ) {
         $this->afterCommit();
     }
@@ -83,57 +79,30 @@ final class NewLeadNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Сообщение в HTML-разметке Telegram: всё, что ввёл посетитель, экранируется, длинное обрезается
-     * целыми строками — ссылка на админку остаётся всегда.
+     * Ответы формы (а без них — контакты из заявки), страница и ссылка на заявки в админке.
      */
-    public function toTelegram(): string
-    {
-        $link = $this->adminUrl === null ? '' : "\n" . '<a href="' . e($this->adminUrl) . '">' . e(__('Открыть в админке')) . '</a>';
-        $text = '';
-
-        foreach ($this->telegramLines() as $line) {
-            if (mb_strlen($text . $line . "\n" . $link) > self::TELEGRAM_LIMIT) {
-                $text .= "…\n";
-
-                break;
-            }
-
-            $text .= $line . "\n";
-        }
-
-        return rtrim($text . $link);
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function telegramLines(): array
+    public function toTelegram(object $notifiable): TelegramMessageData
     {
         $lead = $this->lead;
-        $lines = ['🔔 <b>' . e($this->title ?? __('Заявка с сайта')) . '</b>'];
 
-        if (filled($lead->source)) {
-            $lines[] = '<i>' . e($lead->source) . '</i>';
-        }
+        $fields = collect($lead->answers)->map(fn (array $answer): array => ['label' => $answer['label'], 'value' => $answer['value']]);
 
-        $lines[] = '';
-
-        // В ответах формы уже есть имя и телефон; без ответов — контакты из заявки
-        $answers = collect($lead->answers)->map(fn (array $answer): array => [$answer['label'], $answer['value']]);
-
-        if ($answers->isEmpty()) {
-            $answers = collect([[__('Имя'), $lead->name], [__('Телефон'), $lead->phone], [__('Почта'), $lead->email]])
-                ->filter(fn (array $field): bool => filled($field[1]));
-        }
-
-        foreach ($answers as [$label, $value]) {
-            $lines[] = '<b>' . e((string) $label) . ':</b> ' . e(Str::limit((string) $value, self::VALUE_LIMIT));
+        if ($fields->isEmpty()) {
+            $fields = collect([[__('Имя'), $lead->name], [__('Телефон'), $lead->phone], [__('Почта'), $lead->email]])
+                ->filter(fn (array $field): bool => filled($field[1]))
+                ->map(fn (array $field): array => ['label' => (string) $field[0], 'value' => (string) $field[1]]);
         }
 
         if (filled($lead->url)) {
-            array_push($lines, '', '<b>' . e(__('Страница')) . ':</b> ' . e($lead->url));
+            $fields->push(['label' => __('Страница'), 'value' => $lead->url]);
         }
 
-        return $lines;
+        return new TelegramMessageData(
+            title: __('Заявка с сайта'),
+            fields: $fields->values()->all(),
+            subtitle: $lead->source,
+            link: $this->adminUrl,
+            linkLabel: __('Открыть в админке'),
+        );
     }
 }

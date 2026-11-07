@@ -1,6 +1,6 @@
 <?php
 
-namespace Zuber\Kit\Modules\Leads\Exceptions;
+namespace Zuber\Kit\Modules\Telegram\Exceptions;
 
 use RuntimeException;
 use Throwable;

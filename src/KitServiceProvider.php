@@ -10,6 +10,7 @@ use Zuber\Kit\Modules\Leads\LeadsServiceProvider;
 use Zuber\Kit\Modules\Pages\PagesServiceProvider;
 use Zuber\Kit\Modules\Security\SecurityServiceProvider;
 use Zuber\Kit\Modules\Seo\SeoServiceProvider;
+use Zuber\Kit\Modules\Telegram\TelegramServiceProvider;
 use Zuber\Kit\Modules\Users\UsersServiceProvider;
 
 /**
@@ -27,6 +28,7 @@ final class KitServiceProvider extends ServiceProvider
         AccessServiceProvider::class,
         UsersServiceProvider::class,
         PagesServiceProvider::class,
+        TelegramServiceProvider::class,
         LeadsServiceProvider::class,
     ];
 
