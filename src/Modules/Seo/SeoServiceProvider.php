@@ -10,7 +10,7 @@ use Zuber\Kit\Modules\Seo\Http\Middleware\NoIndexOutsideProductionMiddleware;
 use Zuber\Kit\Modules\Seo\Services\SitemapService;
 
 /**
- * robots.txt, sitemap.xml из разделов с тегом SitemapSourceInterface::TAG, noindex вне прода.
+ * robots.txt, sitemap.xml и llms.txt из разделов с тегом SitemapSourceInterface::TAG, noindex вне прода.
  */
 final class SeoServiceProvider extends ServiceProvider
 {

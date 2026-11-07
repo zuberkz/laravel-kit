@@ -32,14 +32,14 @@ final readonly class PageRepository
     }
 
     /**
-     * Опубликованные страницы для sitemap.xml, без закрытых от индексации.
+     * Опубликованные страницы для sitemap.xml и llms.txt, без закрытых от индексации.
      *
      * @return Collection<int, Page>
      */
     public function publishedForSitemap(): Collection
     {
         return Page::query()
-            ->select(['id', 'path', 'updated_at'])
+            ->select(['id', 'path', 'title', 'seo_title', 'seo_description', 'updated_at'])
             ->where('status', PageStatusEnum::PUBLISHED)
             ->where('noindex', false)
             ->orderBy('path')

@@ -8,7 +8,7 @@ use Zuber\Kit\Modules\Seo\Contracts\SitemapSourceInterface;
 use Zuber\Kit\Modules\Seo\Data\SitemapUrlData;
 
 /**
- * Опубликованные страницы конструктора в sitemap.xml (кроме закрытых от индексации).
+ * Опубликованные страницы конструктора в sitemap.xml и llms.txt (кроме закрытых от индексации).
  */
 final readonly class PagesSitemapSource implements SitemapSourceInterface
 {
@@ -17,7 +17,12 @@ final readonly class PagesSitemapSource implements SitemapSourceInterface
     public function urls(): iterable
     {
         return $this->pages->publishedForSitemap()
-            ->map(fn (Page $page): SitemapUrlData => new SitemapUrlData($page->path, $page->updated_at))
+            ->map(fn (Page $page): SitemapUrlData => new SitemapUrlData(
+                $page->path,
+                $page->updated_at,
+                $page->seo_title ?: $page->title,
+                $page->seo_description,
+            ))
             ->all();
     }
 }

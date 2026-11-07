@@ -30,9 +30,13 @@ paths:
   in `app/Seo/Sitemap` (`urls()` yields `SitemapUrlData` of published records only), tagged
   `SitemapSourceInterface::TAG` in `AppServiceProvider`; a new section of the site gets its
   source in the same commit.
+- `llms.txt` is the kit's route too, built from the same sources: the site name (`APP_NAME`), the
+  description of the home page, then every url with its title and description. A source passes
+  the record's title and meta description into `SitemapUrlData`, so the section shows up in
+  `llms.txt` with words, not only an address. No `public/llms.txt` and no own route for it.
 - Addresses: short, latin, hyphenated slugs (`/services/business-card`), no `.html`, no
   transliteration noise. A changed address gets a 301 from the old one (a redirects table checked
   by middleware before the 404); old URLs of a migrated site are mapped once and kept.
 - Images have meaningful `alt`; the first-screen image is not lazy (rule `media.md`).
 - Tests: every public page — status 200, its `<title>`, one `<h1>`, canonical on `APP_URL`; the
-  sitemap lists every published record and nothing unpublished.
+  sitemap and `llms.txt` list every published record and nothing unpublished.

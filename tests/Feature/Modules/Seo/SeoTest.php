@@ -48,6 +48,37 @@ it('lists every url of the registered sources once, on APP_URL', function (): vo
         ->and(substr_count((string) $xml, '<url>'))->toBe(2);
 });
 
+it('describes the site in llms.txt from the sitemap sources, on APP_URL', function (): void {
+    config(['app.name' => 'Студия']);
+    app()->instance('test.sitemap', new class implements SitemapSourceInterface
+    {
+        public function urls(): iterable
+        {
+            yield new SitemapUrlData('/', null, 'Главная', 'Сайты под ключ в Алматы');
+            yield new SitemapUrlData('http://tech.example.kz/services/landing', null, 'Лендинг', 'Продающая страница за неделю');
+            yield new SitemapUrlData('/contacts');
+        }
+    });
+    app()->tag(['test.sitemap'], SitemapSourceInterface::TAG);
+
+    expect($this->get('http://www.example.kz/llms.txt')->assertOk()->assertHeader('Content-Type', 'text/plain; charset=UTF-8')->getContent())
+        ->toBe(implode("\n", [
+            '# Студия',
+            '',
+            '> Сайты под ключ в Алматы',
+            '',
+            '## Страницы',
+            '',
+            '- [Главная](https://example.kz): Сайты под ключ в Алматы',
+            '- [Лендинг](https://example.kz/services/landing): Продающая страница за неделю',
+            '- [https://example.kz/contacts](https://example.kz/contacts)',
+            '',
+            '## Карта сайта',
+            '',
+            '- [sitemap.xml](https://example.kz/sitemap.xml)',
+        ]) . "\n");
+});
+
 it('builds the canonical url on APP_URL and keeps only the page number', function (string $url, string $canonical): void {
     expect(CanonicalUrlSupport::current($url))->toBe($canonical);
 })->with([

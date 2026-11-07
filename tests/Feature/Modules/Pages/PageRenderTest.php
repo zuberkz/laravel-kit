@@ -130,6 +130,20 @@ it('lists published indexable pages in the sitemap', function (): void {
         ->assertDontSee('/draft');
 });
 
+it('lists published indexable pages in llms.txt with their seo title and description', function (): void {
+    config(['app.url' => 'https://example.kz']);
+    page('/open', [], ['seo_title' => 'Уборка квартир в Алматы', 'seo_description' => 'Генеральная уборка за день']);
+    page('/plain', [], ['title' => 'Химчистка']);
+    page('/hidden', [], ['noindex' => true]);
+    page('/draft', [], ['status' => PageStatusEnum::DRAFT]);
+
+    $this->get('/llms.txt')
+        ->assertSee('- [Уборка квартир в Алматы](https://example.kz/open): Генеральная уборка за день')
+        ->assertSee('- [Химчистка](https://example.kz/plain)')
+        ->assertDontSee('/hidden')
+        ->assertDontSee('/draft');
+});
+
 it('renders every block from its example', function (): void {
     $renderer = app(PageRenderService::class);
 

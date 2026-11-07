@@ -39,13 +39,21 @@ final readonly class SitemapService
     }
 
     /**
+     * Адреса всех разделов по одному разу, уже на APP_URL; их же перечисляет llms.txt.
+     *
      * @return array<int, SitemapUrlData>
      */
-    private function urls(): array
+    public function urls(): array
     {
         return collect($this->sources)
             ->flatMap(fn (SitemapSourceInterface $source): Collection => collect($source->urls()))
-            ->unique(fn (SitemapUrlData $url): string => $this->canonical($url->url))
+            ->map(fn (SitemapUrlData $url): SitemapUrlData => new SitemapUrlData(
+                $this->canonical($url->url),
+                $url->lastModified,
+                $url->title,
+                $url->description,
+            ))
+            ->unique(fn (SitemapUrlData $url): string => $url->url)
             ->values()
             ->all();
     }
@@ -53,7 +61,7 @@ final readonly class SitemapService
     private function writeUrl(XMLWriter $xml, SitemapUrlData $url): void
     {
         $xml->startElement('url');
-        $xml->writeElement('loc', $this->canonical($url->url));
+        $xml->writeElement('loc', $url->url);
 
         if ($url->lastModified !== null) {
             $xml->writeElement('lastmod', $url->lastModified->format('Y-m-d'));

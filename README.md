@@ -13,7 +13,7 @@
 | Первый администратор на сервере | `src/Modules/Users` | `php artisan kit:make-user почта --role=admin` — пароль печатается один раз; `--ask-password` — ввести свой (скрыто) |
 | Права из `PermissionEnum`, роли по умолчанию из `RoleEnum` | `src/Modules/Access` | команда `kit:sync-roles`, её запускает общий деплой |
 | Заголовки безопасности, `noindex` вне прода | `src/Modules/Security`, `src/Modules/Seo` | глобальные middleware, сами |
-| `robots.txt`, `sitemap.xml`, `canonical_url()` | `src/Modules/Seo` | маршруты кита; разделы sitemap — классы проекта с тегом |
+| `robots.txt`, `sitemap.xml`, `llms.txt`, `canonical_url()` | `src/Modules/Seo` | маршруты кита; разделы sitemap и llms.txt — классы проекта с тегом |
 | Защита форм от спама | `src/Modules/Spam` | `HoneypotField` в схеме + трейт `UsesSpamProtection` |
 | Поля `PhoneInput` (+7) и `SearchInput` | `src/Core/Filament/Forms/Fields` | в схемах Filament |
 | Конструктор страниц: блоки, общие блоки, шапка и подвал, черновики | `src/Modules/Pages` | `kit.pages.enabled`, `Route::kitPages()`, `PagesPlugin`, миграции `--tag=kit-pages-migrations` |
