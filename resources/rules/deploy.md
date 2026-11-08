@@ -26,6 +26,10 @@ paths:
   for routes the new version added (Livewire's `livewire.min.js` after an update is the classic
   case); a stale `config:cache` ignores `.env` changes. After editing `.env` on the server —
   `config:clear` and `optimize`.
+- **`.env` and `bootstrap/cache/config.php` are 600.** The config cache holds every secret of
+  `.env`, and site folders on the server are traversable by the other users: `optimize` runs under
+  `umask 077`, then `chmod 600 .env bootstrap/cache/config.php` (the kit's deploy does it). By hand
+  on the server — the same: `(umask 077 && php artisan optimize) && chmod 600 bootstrap/cache/config.php`.
 - Migrations run automatically; data operations do not — they are commands run by hand
   (rule `commands.md`), mentioned in the commit body or the task report.
 
