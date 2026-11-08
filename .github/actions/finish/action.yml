@@ -57,7 +57,11 @@ runs:
                     fi
 
                     [ -e public/storage ] || "$PHP" artisan storage:link
-                    "$PHP" artisan optimize
+
+                    # Кэш конфигурации хранит все секреты .env, а каталоги сайтов проходимы для других пользователей
+                    # сервера: umask 077 не даёт файлу ни секунды побыть 644, chmod — ровно 600 (без бита x от umask)
+                    (umask 077 && "$PHP" artisan optimize)
+                    chmod 600 .env bootstrap/cache/config.php
 
                     # Воркеры очереди держат в памяти старый код: перезапуск после выкладки
                     "$PHP" artisan queue:restart
