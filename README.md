@@ -34,9 +34,13 @@
 ## Подключение
 
 ```bash
-composer config repositories.laravel-kit vcs https://github.com/zuberkz/laravel-kit
+composer config repositories.laravel-kit git https://github.com/zuberkz/laravel-kit.git
 composer require zuberkz/laravel-kit
 ```
+
+Тип `git`, а не `vcs`: `vcs` ходит в GitHub API, без токена его лимит — 60 запросов в час, и
+после него composer пытается клонировать по ssh, которого нет в контейнере `php-fpm`. `git`
+клонирует по https без API.
 
 Проект сам выбирает, что из набора забирать, — теги в `composer.json`:
 
@@ -178,4 +182,4 @@ docker compose run --rm php composer check   # pint, larastan, pest
 
 Проверить изменение на проекте до релиза — подключить пакет из соседней папки, не коммитя это в
 проекте: `composer config repositories.laravel-kit path ../laravel-kit` (в Docker папка пакета
-должна быть смонтирована в контейнер), затем вернуть `vcs`.
+должна быть смонтирована в контейнер), затем вернуть `git`.
